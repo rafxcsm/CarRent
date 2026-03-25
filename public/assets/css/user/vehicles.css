@@ -1,0 +1,379 @@
+/* === BASE STYLES (same as profile.css) === */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  background-color: #0e0e0e;
+  color: white;
+  overflow: hidden;
+  height: 100vh;
+  position: relative;
+}
+
+.background {
+  background: url("../images/blackcar.png.png") center/cover no-repeat;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  opacity: 0.3;
+  filter: brightness(60%);
+}
+
+/* === MAIN CONTENT === */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 40px;
+  position: relative; /* CRITICAL: Allows absolute positioning of the notification popup */
+  overflow-y: auto;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+header .icons img {
+  width: 25px;
+  margin-left: 20px;
+  cursor: pointer;
+  transition: transform 0.3s ease, filter 0.3s ease;
+  filter: brightness(0) invert(1);
+}
+
+header .icons img:hover {
+  transform: scale(1.1);
+  filter: brightness(1.5) invert(1) drop-shadow(0 0 5px #ffd700);
+}
+
+/* === VEHICLE GRID === */
+.vehicles-grid {
+  margin-top: 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 30px;
+  justify-items: center;
+}
+
+.vehicle-card {
+  background: rgba(77, 77, 77, 0.4);
+  border-radius: 20px;
+  backdrop-filter: blur(3px);
+  text-align: center;
+  padding: 20px;
+  width: 270px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+}
+
+.vehicle-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.vehicle-card img {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+/* === BLURRED FOR UNAVAILABLE === */
+.vehicle-card.unavailable img.blurred {
+  filter: blur(6px) brightness(0.6);
+}
+
+.vehicle-card h2 {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin: 10px 0 5px;
+}
+
+.price {
+  color: #a892ff;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.price span {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: #ccc;
+}
+
+/* === BUTTONS === */
+.view-btn,
+.unavailable-btn {
+  margin-top: 15px;
+  width: 100%;
+  padding: 10px 0;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.view-btn {
+  background: #fff;
+  color: #000;
+}
+
+.view-btn:hover {
+  background: #ffd700;
+  color: #000;
+  transform: scale(1.05);
+}
+
+.unavailable-btn {
+  background: #fff;
+  color: red;
+  cursor: not-allowed;
+}
+
+
+
+/* === CAR DETAILS POPUP === */
+.car-details-popup {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.car-details-container {
+  background: #1a1a1a;
+  border-radius: 15px;
+  padding: 25px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90%;
+  overflow-y: auto;
+  position: relative;
+  color: white;
+  text-align: center;
+}
+
+.car-details-container img {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+.car-details-container h2 {
+  font-size: 1.5rem;
+  margin-bottom: 5px;
+}
+
+.car-details-container .price {
+  color: #a892ff;
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+.car-details-container ul {
+  list-style: disc;
+  margin-left: 20px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.car-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.car-buttons button {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+
+.car-buttons button:hover {
+  transform: scale(1.05);
+}
+
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  cursor: pointer;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+}
+/* ===== PROFILE LOGOUT MODAL ===== */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #111;
+  color: white;
+  padding: 15px 10px;
+  border-radius: 12px;
+  width: 350px;
+  text-align: left;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.modal-buttons button {
+  background: #ffd700;
+  color: black;
+  font-weight: 550;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.modal-buttons button:hover {
+  background: white;
+}
+
+.customer-form-grid {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 10px 15px;
+  align-items: center;
+}
+
+/* Input fields */
+.customer-form-grid input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 5px;
+  border: none;
+}
+
+/* Buttons row */
+.modal-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+.modal-content {
+  position: relative;
+}
+.edit-profile-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+}
+/* === PROFILE MODAL BUTTONS - HORIZONTAL ALIGNMENT === */
+.modal-buttons {
+    display: flex;
+    flex-direction: row;        /* ⬅ makes them horizontal */
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.modal-buttons > * {
+    flex: 1;                    /* ⬅ equal width buttons */
+}
+
+/* Keep gold color */
+.modal-buttons .btn {
+    background-color: #ffd700;
+    color: #000;
+}
+
+/* Logout stays red */
+.modal-buttons .danger {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+/* Cancel style */
+.modal-buttons .cancelBtn {
+    background-color: #ddd;
+    color: #333;
+}
+/* === MAKE LOGOUT BUTTON UNIFORM === */
+.modal-buttons {
+    display: flex;
+    align-items: stretch; /* forces same height */
+    gap: 12px;
+}
+
+.modal-buttons > * {
+    flex: 1; /* equal width for button AND form */
+}
+
+/* Force form to behave like a button container */
+.modal-buttons form {
+    display: flex;
+}
+
+/* Force ALL buttons to be identical in size */
+.modal-buttons button,
+.modal-buttons .btn {
+    width: 100%;
+    height: 42px;                 /* 🔥 uniform height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+
+/* Colors */
+.modal-buttons .btn {
+    background-color: #ffd700;
+    color: #000;
+}
+
+.modal-buttons .danger {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+.modal-buttons .cancelBtn {
+    background-color: #ddd;
+    color: #333;
+}

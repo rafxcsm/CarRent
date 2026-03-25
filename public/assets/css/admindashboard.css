@@ -1,0 +1,241 @@
+
+/* === RESET & BASE === */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  background-color: #0e0e0e;
+  overflow-y: auto; 
+  min-height: 100vh;
+  color: white;
+  position: relative;
+}
+
+
+/* === BACKGROUND === */
+html, body {
+  height: 100%;
+}
+
+.menu-container {
+  display: flex;
+  min-height: 100vh; /* ensures it covers the full viewport height */
+  position: relative;
+  z-index: 1;
+}
+
+
+/* === MAIN CONTENT === */
+.main-content {
+  margin-left: 300px;       /* prevents content from being hidden under sidebar */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 40px;
+  position: relative;
+  overflow-y: auto;         /* allow only content area to scroll, not sidebar */
+}
+
+/* === HEADER === */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+header .icons img {
+  width: 25px;
+  margin-left: 20px;
+  cursor: pointer;
+  transition: transform 0.3s ease, filter 0.3s ease;
+  filter: brightness(0) invert(1);
+}
+
+header .icons img:hover {
+  transform: scale(1.1);
+  filter: brightness(1.5) invert(1) drop-shadow(0 0 5px #ffd700);
+}
+
+/* === DASHBOARD CARDS === */
+.dashboard-cards {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 60px;
+  background: rgba(77, 77, 77, 0.4);
+  border-radius: 20px;
+  backdrop-filter: blur(3px);
+  padding: 60px;
+  margin-top: 40px;
+}
+
+.card {
+  text-align: center;
+}
+
+.card h3 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-top: 15px;
+}
+
+.card p {
+  font-size: 1rem;
+  color: #ccc;
+}
+
+/* === CIRCLE PROGRESS === */
+/* === CIRCLE PROGRESS === */
+/* === CIRCLE PROGRESS === */
+.circle {
+  --size: 120px;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: conic-gradient(#ffd700 calc(var(--value) * 1%), #333 0%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 15px auto;
+  position: relative;
+  color: #ffd700;
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+
+/* === CIRCLE PROGRESS === */
+.circle {
+  --size: 120px;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: conic-gradient(#ffd700 calc(var(--value) * 1%), #333 0%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 15px auto;
+  position: relative;
+  color: #ffd700;
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+
+.circle::before {
+  content: '';
+  position: absolute;
+  width: calc(var(--size) - 20px);
+  height: calc(var(--size) - 20px);
+  background: #0e0e0e;
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.circle span {
+  position: relative;
+  z-index: 1;
+}
+
+a{
+  color: white;
+  text-decoration: none;
+}
+
+.active{
+  color:#ffd700;
+}
+/* ===== PROFILE LOGOUT MODAL ===== */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #111;
+  color: white;
+  padding: 25px 35px;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90%;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.modal-content.small {
+  width: 320px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.modal-buttons button {
+  background: #ffd700;
+  color: black;
+  font-weight: 600;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.modal-buttons button:hover {
+  background: white;
+}
+/* MAIN DASHBOARD LAYOUT */
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 25px;
+  margin-top: 20px;
+  align-items: stretch;
+}
+
+/* MAP */
+.dashboard-map {
+  background: #111;
+  padding: 15px;
+  border-radius: 12px;
+}
+
+.dashboard-map iframe {
+  width: 100%;
+  height: 100%;
+  min-height: 350px;
+  border-radius: 10px;
+  border: none;
+}
+
+/* PIE CHARTS */
+.dashboard-cards {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.card {
+  background: #111;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+}

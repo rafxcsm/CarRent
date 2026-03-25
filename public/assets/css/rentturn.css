@@ -1,0 +1,390 @@
+/* === RESET & BASE === */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  background-color: #0e0e0e;
+  color: white;
+  min-height: 100vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* === BACKGROUND === */
+.background {
+  background: url("../images/blackcar.png.png") center/cover no-repeat;
+  position: absolute;
+  inset: 0;
+  opacity: 0.3;
+  filter: brightness(50%);
+  z-index: 0;
+}
+
+/* === MAIN LAYOUT === */
+.menu-container {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 300px;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.sidebar .logo {
+  width: 150px;
+  margin-bottom: 40px;
+  align-self: center;
+}
+
+.sidebar ul {
+  list-style: none;
+  width: 100%;
+}
+
+.sidebar ul li {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  cursor: pointer;
+  padding: 10px 15px;
+  border-radius: 8px;
+  transition: 0.3s;
+}
+
+.sidebar ul li img {
+  width: 28px;
+  filter: brightness(0) invert(1);
+}
+
+.sidebar ul li:hover,
+.sidebar ul li.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffd700;
+}
+
+/* === MAIN CONTENT === */
+.main-content {
+  margin-left: 300px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 40px;
+  position: relative;
+  overflow-y: auto;
+  z-index: 1;
+}
+
+/* === HEADER === */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+header .icons img {
+  width: 25px;
+  margin-left: 20px;
+  cursor: pointer;
+  transition: transform 0.3s ease, filter 0.3s ease;
+  filter: brightness(0) invert(1);
+}
+
+header .icons img:hover {
+  transform: scale(1.1);
+  filter: brightness(1.5) invert(1) drop-shadow(0 0 5px #ffd700);
+}
+
+/* === CONTENT SECTION === */
+.content-section {
+  margin-top: 40px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 15px;
+  padding: 40px;
+  backdrop-filter: blur(3px);
+}
+
+/* === TABLE === */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 25px;
+}
+
+thead {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+th, td {
+  text-align: left;
+  padding: 12px 18px;
+  font-size: 0.95rem;
+}
+
+th {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background 0.3s;
+}
+
+tbody tr:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* === ACTION BUTTONS === */
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 20px;
+}
+
+.action-buttons button {
+  background: #fff;
+  color: #000;
+  border: none;
+  padding: 8px 20px;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.action-buttons button:hover {
+  background: #ffd700;
+  color: #000;
+  box-shadow: 0 0 10px #ffd700;
+}
+a{
+  color: white;
+  text-decoration: none;
+}
+
+.active{
+  color:#ffd700;
+}
+/* ===== PROFILE LOGOUT MODAL ===== */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #111;
+  color: white;
+  padding: 25px 35px;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90%;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.modal-content.small {
+  width: 320px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.modal-buttons button {
+  background: #ffd700;
+  color: black;
+  font-weight: 600;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.modal-buttons button:hover {
+  background: white;
+}
+
+#approveBtn:hover {
+  background: #ffd700;
+  color: black;
+}
+
+#denyBtn:hover {
+  background: #ffd700; 
+  color: white;
+}
+
+/* ===============================
+   ADD BILL MODAL OVERLAY
+================================ */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    justify-content: center;
+    align-items: center;
+}
+
+/* ===============================
+   MODAL BOX
+================================ */
+.modal-content {
+    background: #1f1f1f;
+    width: 420px;
+    padding: 25px 30px;
+    border-radius: 14px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    animation: modalFadeIn 0.3s ease;
+}
+
+/* ===============================
+   TITLE
+================================ */
+.modal-content h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #f1f1f1;
+    font-weight: 600;
+}
+
+/* ===============================
+   FORM ELEMENTS
+================================ */
+.modal-content label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: #bdbdbd;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    background: #2b2b2b;
+    color: #fff;
+    font-size: 14px;
+}
+
+/* Readonly fields */
+.modal-content input[readonly] {
+    background: #252525;
+    color: #aaa;
+    cursor: not-allowed;
+}
+
+/* ===============================
+   BUTTONS
+================================ */
+.modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.modal-buttons button {
+    flex: 1;
+    padding: 10px 0;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Save */
+.modal-buttons button[type="submit"] {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: #fff;
+}
+
+/* Cancel */
+.modal-buttons .closeBtn {
+    background: #444;
+    color: #ddd;
+}
+
+.modal-buttons button:hover {
+    opacity: 0.9;
+}
+
+/* ===============================
+   ADD BILL BUTTON (TABLE)
+================================ */
+.addBillBtn {
+    background: linear-gradient(135deg, #f1c40f, #f39c12);
+    color: #222;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.addBillBtn:hover {
+    opacity: 0.85;
+}
+
+/* ===============================
+   ANIMATION
+================================ */
+@keyframes modalFadeIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+tr.selected {
+  background: rgba(255, 215, 0, 0.3);
+}
+
+tr.approved {
+  background: rgba(0, 255, 0, 0.25);
+}
