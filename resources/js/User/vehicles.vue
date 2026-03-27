@@ -379,4 +379,101 @@ const closeProcessing = () => {
   inset: 0;
   background: rgba(0, 0, 0, 0.65);
 }
+.car-details-popup,
+.booking-modal,
+.processing-modal {
+  display: flex;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.car-details-container,
+.booking-modal-content,
+.processing-content {
+  background: #1b1b1b;
+  color: #fff;
+  padding: 25px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  position: relative;
+  z-index: 10000;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.45);
+  pointer-events: auto;
+}
+
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 28px;
+  cursor: pointer;
+  color: #fff;
+  z-index: 10001;
+}
+
+#carImage {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 15px;
+}
+
+.car-info-box {
+  margin-top: 15px;
+}
+
+.car-info-box ul {
+  list-style: none;
+  padding: 0;
+}
+
+.car-info-box li {
+  margin-bottom: 8px;
+}
+
+.action-buttons,
+.booking-fields {
+  margin-top: 20px;
+}
+
+.booking-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.booking-fields label {
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.booking-fields input {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+}
+
+#bookNowBtn,
+.confirm-btn,
+.ok-btn {
+  background: #ffd700;
+  color: #000;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+#bookNowBtn:hover,
+.confirm-btn:hover,
+.ok-btn:hover {
+  opacity: 0.9;
+}
 </style>
