@@ -1,35 +1,33 @@
 <template>
   <div class="dashboard-page">
-    <section class="dashboard-layout">
+    <div v-if="loading" class="status-message">
+      Loading dashboard...
+    </div>
+
+    <div v-else-if="error" class="status-message error-message">
+      {{ error }}
+    </div>
+
+    <section v-else class="dashboard-layout">
       <div class="dashboard-map">
-        <h2>Our Rental Shop Location</h2>
+        <h2>{{ dashboard.location_title }}</h2>
         <iframe
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1007.2400853653274!2d125.49589573174583!3d9.787397809471626!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x330136bee35cc3ef%3A0x9b7f2d5a0bac57b5!2sNarciso%20Street%2C%20Surigao%2C%20Surigao%20del%20Norte!5e0!3m2!1sen!2sph!4v1765790499257!5m2!1sen!2sph"
+          :src="dashboard.map_url"
           allowfullscreen
           loading="lazy"
         ></iframe>
       </div>
 
       <div class="dashboard-cards">
-        <div class="card">
-          <div class="circle" style="--value: 90">
-            <span>90%</span>
+        <div
+          class="card"
+          v-for="(card, index) in dashboard.cards"
+          :key="index"
+        >
+          <div class="circle" :style="{ '--value': card.value }">
+            <span>{{ card.value }}%</span>
           </div>
-          <p>Total Customers</p>
-        </div>
-
-        <div class="card">
-          <div class="circle" style="--value: 80">
-            <span>80%</span>
-          </div>
-          <p>Daily Vehicles Summary</p>
-        </div>
-
-        <div class="card">
-          <div class="circle" style="--value: 95">
-            <span>95%</span>
-          </div>
-          <p>Daily Sales Summary</p>
+          <p>{{ card.title }}</p>
         </div>
       </div>
     </section>
@@ -37,14 +35,57 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+
+const dashboard = ref({
+  location_title: '',
+  map_url: '',
+  cards: [],
+})
+
+const loading = ref(true)
+const error = ref('')
+
+const fetchDashboard = async () => {
+  try {
+    const response = await axios.get('/api/admin/dashboard')
+
+    if (response.data?.success) {
+      dashboard.value = response.data.data
+    } else {
+      error.value = 'Failed to load dashboard data.'
+    }
+  } catch (err) {
+    error.value =
+      err.response?.data?.message || 'Failed to load dashboard data.'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchDashboard()
+})
 </script>
 
 <style scoped>
 .dashboard-page {
-  min-height: 80%;
+  min-height: 100vh;
   margin-left: 308px;
   padding: 50px 30px 30px 30px;
   background: black;
+}
+
+.status-message {
+  color: white;
+  font-size: 18px;
+  text-align: center;
+  margin-top: 50px;
+}
+
+.error-message {
+  color: #ffb3b3;
 }
 
 .dashboard-layout {
@@ -64,7 +105,8 @@
 .dashboard-map h2 {
   font-size: 1.3rem;
   font-weight: 700;
-  margin-top: 0px;
+  margin-top: 0;
+  margin-bottom: 20px;
   color: white;
 }
 
@@ -124,6 +166,12 @@
 .circle span {
   position: relative;
   z-index: 1;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-page {
+    margin-left: 0;
+  }
 }
 
 @media (max-width: 992px) {

@@ -31,6 +31,7 @@
             <input v-model="form.name" type="text" placeholder="Full Name" required />
             <input v-model="form.email" type="email" placeholder="Email" required />
             <input v-model="form.contact" type="text" placeholder="Phone Number" required />
+            <input v-model="form.license" type="text" placeholder="License No." required />
             <input v-model="form.address" type="text" placeholder="Address" required />
             <input v-model="form.password" type="password" placeholder="Password" required />
             <input

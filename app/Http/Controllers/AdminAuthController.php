@@ -3,28 +3,39 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class AdminAuthController extends Controller
 {
     public function login(Request $request)
     {
-        $credentials = $request->validate([
+        $request->validate([
             'email' => ['required', 'email'],
-            'password' => ['required'],
+            'password' => ['required', 'string'],
         ]);
 
-        if (!Auth::guard('admin')->attempt($credentials)) {
+        $hardcodedEmail = 'rafakijay@gmail.com';
+        $hardcodedPassword = '12345678';
+
+        if (
+            $request->email !== $hardcodedEmail ||
+            $request->password !== $hardcodedPassword
+        ) {
             return response()->json([
-                'message' => 'Invalid email or password.'
-            ], 422);
+                'success' => false,
+                'message' => 'Invalid email or password.',
+            ], 401);
         }
 
-        $request->session()->regenerate();
-
         return response()->json([
-            'message' => 'Login successful',
-            'redirect' => '/admin/dashboard'
+            'success' => true,
+            'message' => 'Login successful.',
+            'redirect' => '/admin/dashboard',
+            'admin' => [
+                'id' => 1,
+                'name' => 'Admin',
+                'email' => $hardcodedEmail,
+                'role' => 'admin',
+            ],
         ]);
     }
 }
