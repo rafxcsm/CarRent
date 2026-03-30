@@ -51,66 +51,54 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import bgImage from '@/assets/img/blackcar.png.png'
+import { ref, onMounted } from 'vue'
 
 const showSuccessMessage = ref(false)
-
-const receipts = ref([
-  {
-    id: 1,
-    date: '2026-03-18',
-    time: '10:30',
-    status: 'pending',
-    vehicle: 'Toyota Vios',
-    rate: 2500,
-    proof_file: 'receipt-juan.png',
-  },
-  {
-    id: 2,
-    date: '2026-03-17',
-    time: '14:00',
-    status: 'approved',
-    vehicle: 'Honda City',
-    rate: 2800,
-    proof_file: 'receipt-maria.png',
-  },
-  {
-    id: 3,
-    date: '2026-03-16',
-    time: '09:15',
-    status: 'denied',
-    vehicle: 'Mitsubishi Montero',
-    rate: 4500,
-    proof_file: 'receipt-mark.png',
-  },
-])
+const receipts = ref([])
 
 const formatRate = (value) => {
-  return Number(value).toLocaleString(undefined, {
+  return Number(value || 0).toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })
 }
+
+onMounted(() => {
+  const savedReceipts = JSON.parse(localStorage.getItem('receipts') || '[]')
+
+  receipts.value = savedReceipts.filter((receipt) => {
+    return (
+      receipt &&
+      receipt.id &&
+      receipt.date &&
+      receipt.time &&
+      receipt.vehicle &&
+      Number(receipt.rate) > 0
+    )
+  })
+
+  if (receipts.value.length > 0) {
+    showSuccessMessage.value = true
+
+    setTimeout(() => {
+      showSuccessMessage.value = false
+    }, 2500)
+  }
+})
 </script>
 
 <style scoped>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Poppins", sans-serif;
-}
-
 .receipts-page {
-  background-color: #0e0e0e;
-  color: white;
-  overflow: hidden;
-  min-height: 100vh;
-  position: relative;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: cover;
+ box-sizing: border-box;
+  position: fixed;
+  top: 80px;
+  left: 317px;
+  width: calc(100vw - 317px);
+  height: calc(100vh - 80px);
+  padding: 30px;
+  background: black;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .background {

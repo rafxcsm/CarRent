@@ -12,16 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('rentals', function (Blueprint $table) {
-        $table->id();
-        $table->unsignedBigInteger('customer_id');
-        $table->unsignedBigInteger('vehicle_id');
-        $table->string('rental_type');
-        $table->dateTime('rental_start');
-        $table->dateTime('rental_end');
-        $table->string('duration');
-        $table->string('status')->default('pending'); // ← include status here
-        $table->timestamps();
-    });
+    $table->id();
+    $table->unsignedBigInteger('customer_id');
+    $table->unsignedBigInteger('vehicle_id');
+    $table->dateTime('rental_start');
+    $table->string('proof_file')->nullable();
+    $table->string('status')->default('pending');
+    $table->timestamps();
+});
     }
 
     /**

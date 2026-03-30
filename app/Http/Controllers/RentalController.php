@@ -2,92 +2,83 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Rental;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 class RentalController extends Controller
 {
-    public function index()
-    {
-        $rentals = Rental::with(['customer', 'vehicle'])->latest()->get();
-        return view('admin.rent', compact('rentals'));
-    }
-
-    public function userReceipts()
-    {
-        $rentals = Rental::with('vehicle')
-            ->where('customer_id', auth()->id())
-            ->latest()
-            ->get();
-
-        return view('user.receipts', compact('rentals'));
-    }
-
-    public function storeUserBooking(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
+            'customer_id' => 'required|exists:users,id',
             'vehicle_id' => 'required|exists:vehicles,id',
-            'date' => 'required|date',
-            'time' => 'required',
-            'proof_file' => 'required|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240',
+            'rental_start' => 'required|date',
+            'proof_file' => 'required|file|mimes:jpg,jpeg,png,pdf,doc,docx',
         ]);
 
-        $fileName = null;
+        $proofPath = null;
 
         if ($request->hasFile('proof_file')) {
-            $file = $request->file('proof_file');
-            $fileName = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
-            $file->move(public_path('uploads/proofs'), $fileName);
+            $proofPath = $request->file('proof_file')->store('rental_receipts', 'public');
         }
 
-        $rentalStart = Carbon::parse($request->date . ' ' . $request->time);
-
         Rental::create([
-            'customer_id' => auth()->id(),
+            'customer_id' => $request->customer_id,
             'vehicle_id' => $request->vehicle_id,
-            'rental_start' => $rentalStart,
-            'proof_file' => $fileName,
+            'rental_start' => $request->rental_start,
+            'proof_file' => $proofPath,
             'status' => 'pending',
         ]);
 
-        return redirect()->route('user.receipts')->with('success', 'Booking saved successfully.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Rental submitted successfully.',
+        ]);
+    }
+
+    public function index()
+    {
+        $rentals = Rental::with(['customer', 'vehicle'])->latest()->get();
+
+        $formatted = $rentals->map(function ($rental) {
+            return [
+                'id' => $rental->id,
+                'customer' => $rental->customer->name ?? 'N/A',
+                'vehicle' => trim(($rental->vehicle->brand ?? '') . ' ' . ($rental->vehicle->model ?? '')),
+                'proof_file' => $rental->proof_file ? basename($rental->proof_file) : null,
+                'proof_url' => $rental->proof_file ? asset('storage/' . $rental->proof_file) : null,
+                'status' => $rental->status,
+                'rental_start' => $rental->rental_start,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'rentals' => $formatted,
+        ]);
     }
 
     public function approve($id)
     {
         $rental = Rental::findOrFail($id);
-
-        if ($rental->status === 'approved') {
-            return response()->json([
-                'success' => true,
-                'message' => 'Rental already approved.',
-                'status' => 'approved',
-            ]);
-        }
-
         $rental->status = 'approved';
         $rental->save();
 
         return response()->json([
             'success' => true,
-            'message' => 'Rental approved successfully.',
-            'status' => 'approved',
+            'message' => 'Rental approved.',
         ]);
     }
 
     public function deny($id)
     {
         $rental = Rental::findOrFail($id);
-
         $rental->status = 'denied';
         $rental->save();
 
         return response()->json([
             'success' => true,
-            'message' => 'Rental denied successfully.',
-            'status' => 'denied',
+            'message' => 'Rental denied.',
         ]);
     }
 }

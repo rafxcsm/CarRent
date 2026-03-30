@@ -48,7 +48,9 @@
         <span class="close-btn" @click="closeDetails">&times;</span>
 
         <img :src="selectedVehicle.image" id="carImage" alt="Vehicle Image" />
-        <h2 id="carName">{{ selectedVehicle.brand }} {{ selectedVehicle.model }}</h2>
+        <h2 id="carName">
+          {{ selectedVehicle.brand }} {{ selectedVehicle.model }}
+        </h2>
         <p class="price" id="carPrice">
           ₱{{ formatPrice(selectedVehicle.rate) }} <span>per day</span>
         </p>
@@ -58,9 +60,9 @@
           <ul id="carFeatures">
             <li><strong>Brand:</strong> {{ selectedVehicle.brand }}</li>
             <li><strong>Model:</strong> {{ selectedVehicle.model }}</li>
-            <li><strong>Seats:</strong> {{ selectedVehicle.seats }}</li>
-            <li><strong>Transmission:</strong> {{ selectedVehicle.transmission }}</li>
-            <li><strong>Fuel:</strong> {{ selectedVehicle.fuel }}</li>
+            <li><strong>Seats:</strong> {{ selectedVehicle.seats || 'N/A' }}</li>
+            <li><strong>Transmission:</strong> {{ selectedVehicle.transmission || 'N/A' }}</li>
+            <li><strong>Fuel:</strong> {{ selectedVehicle.fuel || 'N/A' }}</li>
             <li><strong>Status:</strong> {{ selectedVehicle.status }}</li>
           </ul>
         </div>
@@ -98,9 +100,10 @@
             id="confirmBookBtn"
             class="confirm-btn"
             type="button"
+            :disabled="submitting"
             @click="confirmBooking"
           >
-            Confirm Booking
+            {{ submitting ? 'Submitting...' : 'Confirm Booking' }}
           </button>
         </div>
       </div>
@@ -114,9 +117,11 @@
         </template>
 
         <template v-else>
-          <h3>Your transaction is being processed.</h3>
-          <p>Please wait...</p>
-          <button class="ok-btn" type="button" @click="closeProcessing">OK</button>
+          <h3>Your transaction has been submitted.</h3>
+          <p>Please wait for admin approval.</p>
+          <button class="ok-btn" type="button" @click="closeProcessing">
+            OK
+          </button>
         </template>
       </div>
     </div>
@@ -124,58 +129,16 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
-
-import UserNavbar from '@/components/user/navbar.vue'
+import { reactive, ref, onMounted } from 'vue'
+import axios from 'axios'
+import { useRouter } from 'vue-router'
 import defaultCarImg from '@/assets/img/logocar.png.png'
 
+const router = useRouter()
 
-const vehicles = ref([
-  {
-    id: 1,
-    brand: 'Toyota',
-    model: 'Vios',
-    rate: 2500,
-    seats: 5,
-    transmission: 'Automatic',
-    fuel: 'Gasoline',
-    status: 'Available',
-    image: defaultCarImg,
-  },
-  {
-    id: 2,
-    brand: 'Honda',
-    model: 'City',
-    rate: 2800,
-    seats: 5,
-    transmission: 'Automatic',
-    fuel: 'Gasoline',
-    status: 'Available',
-    image: defaultCarImg,
-  },
-  {
-    id: 3,
-    brand: 'Mitsubishi',
-    model: 'Montero',
-    rate: 4500,
-    seats: 7,
-    transmission: 'Automatic',
-    fuel: 'Diesel',
-    status: 'Unavailable',
-    image: defaultCarImg,
-  },
-  {
-    id: 4,
-    brand: 'Suzuki',
-    model: 'Ertiga',
-    rate: 3000,
-    seats: 7,
-    transmission: 'Manual',
-    fuel: 'Gasoline',
-    status: 'Available',
-    image: defaultCarImg,
-  },
-])
+const vehicles = ref([])
+const loading = ref(false)
+const submitting = ref(false)
 
 const showDetailsModal = ref(false)
 const showBookingModal = ref(false)
@@ -201,11 +164,39 @@ const booking = reactive({
 })
 
 const formatPrice = (value) => {
-  return Number(value).toLocaleString(undefined, {
+  return Number(value || 0).toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })
 }
+
+const fetchVehicles = async () => {
+  loading.value = true
+
+  try {
+    const response = await axios.get('/user/vehicles')
+
+    if (response.data?.success) {
+      vehicles.value = response.data.vehicles.map((vehicle) => ({
+        ...vehicle,
+        image: vehicle.image
+          ? `/uploads/vehicles/${vehicle.image}`
+          : defaultCarImg,
+      }))
+    } else {
+      vehicles.value = []
+    }
+  } catch (error) {
+    console.error('Failed to fetch vehicles:', error)
+    vehicles.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchVehicles()
+})
 
 const openDetails = (vehicle) => {
   Object.assign(selectedVehicle, vehicle)
@@ -232,41 +223,75 @@ const handleProofFile = (event) => {
   booking.proofFile = event.target.files?.[0] || null
 }
 
-const confirmBooking = () => {
+
+ const confirmBooking = async () => {
   if (!booking.date || !booking.time || !booking.proofFile) {
     alert('Please select booking date, time, and upload a file or image.')
     return
   }
 
-  showBookingModal.value = false
-  showProcessingModal.value = true
-  processingDone.value = false
+  const user = JSON.parse(localStorage.getItem('user'))
 
-  setTimeout(() => {
-    processingDone.value = true
-  }, 1500)
+  if (!user || !user.id) {
+    alert('Please login first.')
+    router.push('/login')
+    return
+  }
+
+  try {
+    submitting.value = true
+    showBookingModal.value = false
+    showProcessingModal.value = true
+    processingDone.value = false
+
+    const rentalStart = `${booking.date} ${booking.time}:00`
+
+    const formData = new FormData()
+    formData.append('customer_id', user.id)
+    formData.append('vehicle_id', selectedVehicle.id)
+    formData.append('rental_start', rentalStart)
+    formData.append('proof_file', booking.proofFile)
+
+    const response = await axios.post('/user/rentals', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+
+    if (response.data?.success) {
+      processingDone.value = true
+    } else {
+      throw new Error(response.data?.message || 'Rental failed.')
+    }
+  } catch (error) {
+    console.error('Rental failed:', error)
+    alert(error.response?.data?.message || 'Failed to submit rental.')
+    showProcessingModal.value = false
+    processingDone.value = false
+  } finally {
+    submitting.value = false
+  }
 }
 
 const closeProcessing = () => {
   showProcessingModal.value = false
   processingDone.value = false
+  router.push('/user/receipts')
 }
 </script>
 
 <style scoped>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Poppins", sans-serif;
-}
-
 .vehicles-page {
-  background-color: #0e0e0e;
-  color: white;
-  overflow: hidden;
-  min-height: 100vh;
-  position: relative;
+  box-sizing: border-box;
+  position: fixed;
+  top: 80px;
+  left: 317px;
+  width: calc(100vw - 317px);
+  height: calc(100vh - 80px);
+  padding: 30px;
+  background: black;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .background {
@@ -318,6 +343,8 @@ const closeProcessing = () => {
 
 .vehicle-card img {
   width: 100%;
+  height: 180px;
+  object-fit: cover;
   border-radius: 12px;
   margin-bottom: 10px;
 }
@@ -371,14 +398,6 @@ const closeProcessing = () => {
   cursor: not-allowed;
 }
 
-.car-details-popup,
-.booking-modal,
-.processing-modal {
-  display: flex;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-}
 .car-details-popup,
 .booking-modal,
 .processing-modal {
@@ -475,5 +494,10 @@ const closeProcessing = () => {
 .confirm-btn:hover,
 .ok-btn:hover {
   opacity: 0.9;
+}
+
+.confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>

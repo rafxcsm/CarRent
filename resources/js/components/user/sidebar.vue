@@ -46,6 +46,7 @@ const isActive = (path) => {
   flex-direction: column;
   align-items: flex-start;
   z-index: 1000;
+  box-sizing: border-box;
 }
 
 .logo {

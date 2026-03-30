@@ -6,7 +6,7 @@
       <nav>
         <ul>
           <li>
-            <router-link to="/" >LOGIN</router-link>
+            <router-link to="/user">LOGIN</router-link>
           </li>
           <li>
             <router-link to="/signup" class="active">SIGN UP</router-link>
@@ -41,8 +41,12 @@
               required
             />
 
-            <button type="submit">Sign Up</button>
+            <button type="submit" :disabled="loading">
+              {{ loading ? 'Signing Up...' : 'Sign Up' }}
+            </button>
           </form>
+
+          <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
         </div>
       </div>
     </main>
@@ -60,28 +64,65 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 import bgImage from '@/assets/img/cimage.png.png'
 
 const router = useRouter()
 
 const showSuccessModal = ref(false)
+const loading = ref(false)
+const errorMessage = ref('')
 
 const form = reactive({
   name: '',
   email: '',
   contact: '',
+  license: '',
   address: '',
   password: '',
   password_confirmation: '',
 })
 
-const handleSignup = () => {
-  showSuccessModal.value = true
+const resetForm = () => {
+  form.name = ''
+  form.email = ''
+  form.contact = ''
+  form.license = ''
+  form.address = ''
+  form.password = ''
+  form.password_confirmation = ''
+}
+
+const handleSignup = async () => {
+  loading.value = true
+  errorMessage.value = ''
+
+  try {
+    const response = await axios.post('/signup', form)
+
+    if (response.data?.success) {
+      showSuccessModal.value = true
+      resetForm()
+    } else {
+      errorMessage.value = 'Signup failed.'
+    }
+  } catch (err) {
+    const errors = err.response?.data?.errors
+
+    if (errors) {
+      errorMessage.value = Object.values(errors)[0][0]
+    } else {
+      errorMessage.value =
+        err.response?.data?.message || 'Unable to create account.'
+    }
+  } finally {
+    loading.value = false
+  }
 }
 
 const goToLogin = () => {
   showSuccessModal.value = false
-  router.push('/')
+  router.push('/user')
 }
 </script>
 
@@ -219,6 +260,18 @@ main {
 
 .signup-box button:hover {
   background-color: #fff;
+}
+
+.signup-box button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.error-message {
+  margin-top: 12px;
+  color: #ffb3b3;
+  font-size: 14px;
+  text-align: center;
 }
 
 .modal {

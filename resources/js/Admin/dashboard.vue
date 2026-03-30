@@ -71,10 +71,16 @@ onMounted(() => {
 
 <style scoped>
 .dashboard-page {
-  min-height: 100vh;
-  margin-left: 308px;
-  padding: 50px 30px 30px 30px;
+  box-sizing: border-box;
+  position: fixed;
+  top: 80px;
+  left: 317px;
+  width: calc(100vw - 317px);
+  height: calc(100vh - 80px);
+  padding: 30px;
   background: black;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .status-message {
@@ -92,7 +98,6 @@ onMounted(() => {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 25px;
-  margin-top: 10px;
   align-items: stretch;
 }
 
@@ -169,6 +174,10 @@ onMounted(() => {
 }
 
 @media (max-width: 1200px) {
+  .navbar {
+    left: 0;
+  }
+
   .dashboard-page {
     margin-left: 0;
   }

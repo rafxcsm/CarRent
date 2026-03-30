@@ -4,22 +4,23 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Vehicle;
-use Inertia\Inertia;
 
 class VehicleController extends Controller
 {
     public function index()
     {
-        $vehicles = Vehicle::all();
+        $vehicles = Vehicle::latest()->get();
 
-        return Inertia::render('Admin/Vehicles', [
+        return response()->json([
+            'success' => true,
             'vehicles' => $vehicles,
         ]);
     }
+
     public function store(Request $request)
     {
         $data = $request->validate([
-            'reg_no' => 'required|unique:vehicles',
+            'reg_no' => 'required|unique:vehicles,reg_no',
             'brand'  => 'required',
             'color'  => 'required',
             'model'  => 'required',
@@ -28,24 +29,27 @@ class VehicleController extends Controller
             'image'  => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        $fileName = time() . '_' . $request->image->getClientOriginalName();
-        $request->image->move(public_path('uploads/vehicles'), $fileName);
-
-        $data['image'] = $fileName;
-
-        Vehicle::create($data);
-
-        return redirect()->back()->with('success', 'Vehicle added!');
-    }
-
-    public function update(Request $request, $vehicle)
-    {
-        if (!$vehicle instanceof Vehicle) {
-            $vehicle = Vehicle::findOrFail($vehicle);
+        if ($request->hasFile('image')) {
+            $fileName = time() . '_' . $request->file('image')->getClientOriginalName();
+            $request->file('image')->move(public_path('uploads/vehicles'), $fileName);
+            $data['image'] = $fileName;
         }
 
+        $vehicle = Vehicle::create($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Vehicle added successfully.',
+            'vehicle' => $vehicle,
+        ], 201);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $vehicle = Vehicle::findOrFail($id);
+
         $data = $request->validate([
-            'reg_no' => 'required',
+            'reg_no' => 'required|unique:vehicles,reg_no,' . $vehicle->id,
             'brand'  => 'required',
             'color'  => 'required',
             'model'  => 'required',
@@ -59,22 +63,23 @@ class VehicleController extends Controller
                 unlink(public_path('uploads/vehicles/' . $vehicle->image));
             }
 
-            $fileName = time() . '_' . $request->image->getClientOriginalName();
-            $request->image->move(public_path('uploads/vehicles'), $fileName);
-
+            $fileName = time() . '_' . $request->file('image')->getClientOriginalName();
+            $request->file('image')->move(public_path('uploads/vehicles'), $fileName);
             $data['image'] = $fileName;
         }
 
         $vehicle->update($data);
 
-        return redirect()->back()->with('success', 'Vehicle updated!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Vehicle updated successfully.',
+            'vehicle' => $vehicle->fresh(),
+        ]);
     }
 
-    public function destroy($vehicle)
+    public function destroy($id)
     {
-        if (!$vehicle instanceof Vehicle) {
-            $vehicle = Vehicle::findOrFail($vehicle);
-        }
+        $vehicle = Vehicle::findOrFail($id);
 
         if ($vehicle->image && file_exists(public_path('uploads/vehicles/' . $vehicle->image))) {
             unlink(public_path('uploads/vehicles/' . $vehicle->image));
@@ -82,6 +87,9 @@ class VehicleController extends Controller
 
         $vehicle->delete();
 
-        return redirect()->back()->with('success', 'Vehicle deleted!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Vehicle deleted successfully.',
+        ]);
     }
 }

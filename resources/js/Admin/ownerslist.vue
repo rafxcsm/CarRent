@@ -152,19 +152,17 @@ const deleteOwner = () => {
 </script>
 
 <style scoped>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Poppins", sans-serif;
-}
-
 .owners-page {
-  min-height: calc(100vh - 80px);
-  background-color: #0e0e0e;
-  color: white;
-  position: relative;
-  margin-left: 308px;
+  box-sizing: border-box;
+  position: fixed;
+  top: 80px;
+  left: 317px;
+  width: calc(100vw - 317px);
+  height: calc(100vh - 80px);
+  padding: 30px;
+  background: black;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .background {

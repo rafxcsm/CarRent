@@ -34,8 +34,10 @@ const pageTitle = computed(() => {
 
 <style scoped>
 .navbar {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 317px;
+  right: 0;
   height: 80px;
   display: flex;
   align-items: center;
@@ -50,8 +52,7 @@ const pageTitle = computed(() => {
   font-size: 1.5rem;
   font-weight: 700;
   color: #ffd700;
-  margin: 0px;
-  margin-left: 308px;
+  margin: 0;
 }
 
 .admin-name {

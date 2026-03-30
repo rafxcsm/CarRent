@@ -31,8 +31,10 @@ const pageTitle = computed(() => {
 
 <style scoped>
 .navbar {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 317px;
+  right: 0;
   height: 80px;
   display: flex;
   align-items: center;

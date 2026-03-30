@@ -29,12 +29,18 @@
               required
             />
 
-            <button type="submit" class="btn-link">Login</button>
+            <button type="submit" class="btn-link" :disabled="loading">
+              {{ loading ? 'Logging in...' : 'Login' }}
+            </button>
           </form>
+
+          <p v-if="errorMessage" class="error-message">
+            {{ errorMessage }}
+          </p>
 
           <p class="signup-text">
             Don’t have an account?
-            <router-link to="/signup">Sign up</router-link>
+            <router-link to="/user/signup">Sign up</router-link>
           </p>
         </div>
       </div>
@@ -43,16 +49,46 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
 import bgImage from '@/assets/img/cimage.png.png'
+
+const router = useRouter()
+
+const loading = ref(false)
+const errorMessage = ref('')
 
 const form = reactive({
   email: '',
   password: '',
 })
 
-const handleLogin = () => {
-  alert('UI only: login not connected yet.')
+const handleLogin = async () => {
+  loading.value = true
+  errorMessage.value = ''
+
+  try {
+    const response = await axios.post('/login', form)
+
+    if (response.data?.success) {
+      localStorage.setItem('user', JSON.stringify(response.data.user))
+      router.push('/user/vehicles')
+    } else {
+      errorMessage.value = 'Login failed.'
+    }
+  } catch (err) {
+    const errors = err.response?.data?.errors
+
+    if (errors) {
+      errorMessage.value = Object.values(errors)[0][0]
+    } else {
+      errorMessage.value =
+        err.response?.data?.message || 'Invalid email or password.'
+    }
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
@@ -163,6 +199,11 @@ main {
   background-color: #fff;
 }
 
+.login-box button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .btn-link {
   display: inline-block;
   padding: 10px 20px;
@@ -190,5 +231,11 @@ main {
 
 .signup-text a:hover {
   color: white;
+}
+
+.error-message {
+  margin-top: 12px;
+  color: #ffb3b3;
+  font-size: 14px;
 }
 </style>

@@ -5,7 +5,10 @@
         <input v-model="search" type="text" placeholder="Search..." />
       </div>
 
-      <table id="vehicleTable">
+      <div v-if="loading" class="empty-state">Loading vehicles...</div>
+      <div v-else-if="error" class="empty-state">{{ error }}</div>
+
+      <table v-else id="vehicleTable">
         <thead>
           <tr>
             <th>Reg No</th>
@@ -18,7 +21,7 @@
           </tr>
         </thead>
 
-        <tbody>
+        <tbody v-if="filteredVehicles.length">
           <tr
             v-for="vehicle in filteredVehicles"
             :key="vehicle.id"
@@ -31,7 +34,13 @@
             <td>{{ vehicle.model }}</td>
             <td>₱{{ formatRate(vehicle.rate) }}</td>
             <td>{{ vehicle.status }}</td>
-            <td>{{ vehicle.created_at }}</td>
+            <td>{{ formatDate(vehicle.created_at) }}</td>
+          </tr>
+        </tbody>
+
+        <tbody v-else>
+          <tr>
+            <td colspan="7" class="empty-state">No vehicles found.</td>
           </tr>
         </tbody>
       </table>
@@ -71,9 +80,14 @@
 
           <label>Vehicle Photo:</label>
           <input type="file" accept="image/*" @change="handleImageChange" />
+          <small v-if="isEditMode" class="hint">
+            Leave blank if you do not want to change the image.
+          </small>
 
           <div class="modal-buttons">
-            <button type="submit">Save</button>
+            <button type="submit" :disabled="saving">
+              {{ saving ? 'Saving...' : 'Save' }}
+            </button>
             <button type="button" @click="closeVehicleModal">Cancel</button>
           </div>
         </form>
@@ -83,10 +97,18 @@
     <div v-if="showDeleteModal" class="modal" @click.self="closeDeleteModal">
       <div class="modal-content small">
         <h3>Delete this vehicle?</h3>
+        <p v-if="selectedVehicle">
+          {{ selectedVehicle.reg_no }} - {{ selectedVehicle.brand }}
+        </p>
 
         <div class="modal-buttons">
-          <button type="button" class="danger-btn" @click="deleteVehicle">
-            Delete
+          <button
+            type="button"
+            class="danger-btn"
+            @click="deleteVehicle"
+            :disabled="deleting"
+          >
+            {{ deleting ? 'Deleting...' : 'Delete' }}
           </button>
           <button type="button" @click="closeDeleteModal">Cancel</button>
         </div>
@@ -96,7 +118,8 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, onMounted } from 'vue'
+import axios from 'axios'
 
 const search = ref('')
 const selectedVehicle = ref(null)
@@ -105,38 +128,11 @@ const showVehicleModal = ref(false)
 const showDeleteModal = ref(false)
 const isEditMode = ref(false)
 
-const vehicles = ref([
-  {
-    id: 1,
-    reg_no: 'ABC-1234',
-    brand: 'Toyota',
-    color: 'White',
-    model: 'Vios',
-    rate: 2500,
-    status: 'Available',
-    created_at: '03/18/2026',
-  },
-  {
-    id: 2,
-    reg_no: 'XYZ-5678',
-    brand: 'Mitsubishi',
-    color: 'Black',
-    model: 'Montero',
-    rate: 4500,
-    status: 'Rented',
-    created_at: '03/16/2026',
-  },
-  {
-    id: 3,
-    reg_no: 'LMN-2468',
-    brand: 'Honda',
-    color: 'Red',
-    model: 'City',
-    rate: 2800,
-    status: 'Available',
-    created_at: '03/15/2026',
-  },
-])
+const vehicles = ref([])
+const loading = ref(false)
+const saving = ref(false)
+const deleting = ref(false)
+const error = ref('')
 
 const vehicleForm = reactive({
   id: null,
@@ -147,6 +143,29 @@ const vehicleForm = reactive({
   rate: '',
   status: 'Available',
   image: null,
+})
+
+const fetchVehicles = async () => {
+  loading.value = true
+  error.value = ''
+
+  try {
+    const response = await axios.get('/admin/vehicles')
+
+    if (response.data?.success) {
+      vehicles.value = response.data.vehicles || []
+    } else {
+      error.value = 'Failed to load vehicles.'
+    }
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Failed to load vehicles.'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchVehicles()
 })
 
 const filteredVehicles = computed(() => {
@@ -170,7 +189,14 @@ const filteredVehicles = computed(() => {
   )
 })
 
-const formatRate = (rate) => Number(rate).toLocaleString()
+const formatRate = (rate) => {
+  return Number(rate || 0).toLocaleString()
+}
+
+const formatDate = (value) => {
+  if (!value) return ''
+  return new Date(value).toLocaleDateString('en-US')
+}
 
 const selectVehicle = (vehicle) => {
   selectedVehicle.value = vehicle
@@ -233,62 +259,85 @@ const closeDeleteModal = () => {
   showDeleteModal.value = false
 }
 
-const saveVehicle = () => {
-  if (isEditMode.value) {
-    const index = vehicles.value.findIndex((v) => v.id === vehicleForm.id)
-    if (index !== -1) {
-      vehicles.value[index] = {
-        ...vehicles.value[index],
-        reg_no: vehicleForm.reg_no,
-        brand: vehicleForm.brand,
-        color: vehicleForm.color,
-        model: vehicleForm.model,
-        rate: vehicleForm.rate,
-        status: vehicleForm.status,
-      }
-    }
-  } else {
-    vehicles.value.push({
-      id: Date.now(),
-      reg_no: vehicleForm.reg_no,
-      brand: vehicleForm.brand,
-      color: vehicleForm.color,
-      model: vehicleForm.model,
-      rate: vehicleForm.rate,
-      status: vehicleForm.status,
-      created_at: new Date().toLocaleDateString('en-US'),
-    })
-  }
+const saveVehicle = async () => {
+  saving.value = true
 
-  closeVehicleModal()
-  resetForm()
+  try {
+    const formData = new FormData()
+    formData.append('reg_no', vehicleForm.reg_no)
+    formData.append('brand', vehicleForm.brand)
+    formData.append('color', vehicleForm.color)
+    formData.append('model', vehicleForm.model)
+    formData.append('rate', vehicleForm.rate)
+    formData.append('status', vehicleForm.status)
+
+    if (vehicleForm.image) {
+      formData.append('image', vehicleForm.image)
+    }
+
+    if (isEditMode.value) {
+      formData.append('_method', 'POST')
+
+      await axios.post(`/admin/vehicles/${vehicleForm.id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+    } else {
+      await axios.post('/admin/vehicles', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+    }
+
+    await fetchVehicles()
+    closeVehicleModal()
+    resetForm()
+    selectedVehicle.value = null
+  } catch (err) {
+    const errors = err.response?.data?.errors
+    if (errors) {
+      const firstError = Object.values(errors)[0]?.[0]
+      alert(firstError || 'Failed to save vehicle.')
+    } else {
+      alert(err.response?.data?.message || 'Failed to save vehicle.')
+    }
+  } finally {
+    saving.value = false
+  }
 }
 
-const deleteVehicle = () => {
+const deleteVehicle = async () => {
   if (!selectedVehicle.value) return
 
-  vehicles.value = vehicles.value.filter(
-    (v) => v.id !== selectedVehicle.value.id
-  )
-  selectedVehicle.value = null
-  closeDeleteModal()
+  deleting.value = true
+
+  try {
+    await axios.delete(`/admin/vehicles/${selectedVehicle.value.id}`)
+    selectedVehicle.value = null
+    await fetchVehicles()
+    closeDeleteModal()
+  } catch (err) {
+    alert(err.response?.data?.message || 'Failed to delete vehicle.')
+  } finally {
+    deleting.value = false
+  }
 }
 </script>
 
 <style scoped>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Poppins", sans-serif;
-}
-
 .vehicles-page {
-  min-height: 100%;
-  background: #0e0e0e;
-  margin-left: 308px;
-  padding: 150px 100px 100px 100px;
-
+  box-sizing: border-box;
+  position: fixed;
+  top: 80px;
+  left: 317px;
+  width: calc(100vw - 317px);
+  height: calc(100vh - 80px);
+  padding: 30px;
+  background: black;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .content-section {
@@ -422,6 +471,12 @@ tbody tr.selected {
   color: #ffd700;
 }
 
+.modal-content p {
+  text-align: center;
+  color: #ddd;
+  margin-bottom: 10px;
+}
+
 .modal-content label {
   display: block;
   margin-top: 10px;
@@ -438,6 +493,14 @@ tbody tr.selected {
   background: rgba(255, 255, 255, 0.712);
   color: black;
   outline: none;
+  box-sizing: border-box;
+}
+
+.hint {
+  display: block;
+  margin-top: 8px;
+  color: #ccc;
+  font-size: 0.85rem;
 }
 
 .modal-buttons {
@@ -462,12 +525,22 @@ tbody tr.selected {
   background: white;
 }
 
+.modal-buttons button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .danger-btn {
   background: red !important;
   color: white !important;
 }
 
 @media (max-width: 992px) {
+  .vehicles-page {
+    left: 0;
+    width: 100vw;
+  }
+
   .content-section {
     padding: 20px;
   }

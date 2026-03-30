@@ -8,29 +8,34 @@ use Illuminate\Support\Facades\Hash;
 
 class SignupController extends Controller
 {
-    // Handle signup form submission
     public function store(Request $request)
     {
-        // Validate signup data
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'contact' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:255',
-            'password' => 'required|min:6|confirmed',
+            'email' => 'required|email|max:255|unique:users,email',
+            'contact' => 'required|string|max:20',
+            'license' => 'required|string|max:50|unique:users,license',
+            'address' => 'required|string|max:255',
+            'password' => 'required|string|min:6|confirmed',
         ]);
 
-        // Create user
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'contact' => $request->contact,
-            'address' => $request->address,
-            'password' => Hash::make($request->password),
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'contact' => $validated['contact'],
+            'license' => $validated['license'],
+            'address' => $validated['address'],
+            'password' => Hash::make($validated['password']),
         ]);
 
-        // Redirect after signup
-        return redirect()->route('signup.form')
-            ->with('success', 'Account created successfully!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Account created successfully.',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ],
+        ], 201);
     }
 }

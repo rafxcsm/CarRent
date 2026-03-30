@@ -1,8 +1,6 @@
 <template>
   <div class="rent-page">
     <main class="main-content">
-
-
       <section class="content-section">
         <table id="rentalTable">
           <thead>
@@ -26,7 +24,7 @@
                 <span
                   v-if="rental.proof_file"
                   class="receipt-link"
-                  @click="openReceipt(rental.proof_file)"
+                  @click="openReceipt(rental)"
                 >
                   {{ rental.proof_file }}
                 </span>
@@ -52,9 +50,13 @@
                   </button>
                 </template>
                 <template v-else>
-                  <span class="processed-text">Processing</span>
+                  <span class="processed-text">Processed</span>
                 </template>
               </td>
+            </tr>
+
+            <tr v-if="!rentals.length">
+              <td colspan="6" class="empty-state">No rentals found.</td>
             </tr>
           </tbody>
         </table>
@@ -66,83 +68,109 @@
       <div class="receipt-placeholder">
         <h3>Receipt Preview</h3>
         <p>{{ selectedReceipt }}</p>
-        <p>No image uploaded yet.</p>
+
+        <img
+          v-if="selectedReceiptUrl && isImage(selectedReceiptUrl)"
+          :src="selectedReceiptUrl"
+          alt="Payment Receipt"
+          class="receipt-image"
+        />
+
+        <div v-else-if="selectedReceiptUrl" class="receipt-file-box">
+          <a :href="selectedReceiptUrl" target="_blank" rel="noopener noreferrer">
+            Open Receipt File
+          </a>
+        </div>
+
+        <p v-else>No file uploaded yet.</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
 
 const showReceiptModal = ref(false)
 const selectedReceipt = ref('')
+const selectedReceiptUrl = ref('')
+const rentals = ref([])
 
-const rentals = ref([
-  {
-    id: 1,
-    customer: 'Juan Dela Cruz',
-    vehicle: 'Toyota, Vios, White',
-    proof_file: 'receipt-juan.png',
-    status: 'pending',
-  },
-  {
-    id: 2,
-    customer: 'Maria Santos',
-    vehicle: 'Honda, City, Red',
-    proof_file: 'receipt-maria.png',
-    status: 'approved',
-  },
-  {
-    id: 3,
-    customer: 'Mark Reyes',
-    vehicle: 'Mitsubishi, Montero, Black',
-    proof_file: 'receipt-mark.png',
-    status: 'denied',
-  },
-  {
-    id: 4,
-    customer: 'Angela Lopez',
-    vehicle: 'Suzuki, Ertiga, Silver',
-    proof_file: '',
-    status: 'pending',
-  },
-])
+const fetchRentals = async () => {
+  try {
+    const response = await axios.get('/admin/rentals')
 
-const openReceipt = (fileName) => {
-  selectedReceipt.value = fileName
+    if (response.data?.success) {
+      rentals.value = response.data.rentals
+    } else {
+      rentals.value = []
+    }
+  } catch (error) {
+    console.error('Failed to fetch rentals:', error)
+    rentals.value = []
+  }
+}
+
+onMounted(() => {
+  fetchRentals()
+})
+
+const openReceipt = (rental) => {
+  selectedReceipt.value = rental.proof_file || 'No receipt uploaded'
+  selectedReceiptUrl.value = rental.proof_url || ''
   showReceiptModal.value = true
 }
 
 const closeReceipt = () => {
   selectedReceipt.value = ''
+  selectedReceiptUrl.value = ''
   showReceiptModal.value = false
 }
 
-const approveRental = (id) => {
-  const rental = rentals.value.find((item) => item.id === id)
-  if (rental) rental.status = 'approved'
+const approveRental = async (id) => {
+  try {
+    const response = await axios.put(`/admin/rentals/${id}/approve`)
+
+    if (response.data?.success) {
+      await fetchRentals()
+    }
+  } catch (error) {
+    console.error('Approve failed:', error)
+    alert(error.response?.data?.message || 'Failed to approve rental.')
+  }
 }
 
-const denyRental = (id) => {
-  const rental = rentals.value.find((item) => item.id === id)
-  if (rental) rental.status = 'denied'
+const denyRental = async (id) => {
+  try {
+    const response = await axios.put(`/admin/rentals/${id}/deny`)
+
+    if (response.data?.success) {
+      await fetchRentals()
+    }
+  } catch (error) {
+    console.error('Deny failed:', error)
+    alert(error.response?.data?.message || 'Failed to deny rental.')
+  }
+}
+
+const isImage = (url) => {
+  return /\.(jpg|jpeg|png|gif|webp)$/i.test(url)
 }
 </script>
 
 <style scoped>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Poppins", sans-serif;
-}
-
 .rent-page {
-  min-height: calc(100vh - 80px);
-  background: #0e0e0e;
-  color: white;
-  margin-left: 308px;
+  box-sizing: border-box;
+  position: fixed;
+  top: 80px;
+  left: 317px;
+  width: calc(100vw - 317px);
+  height: calc(100vh - 80px);
+  padding: 30px;
+  background: black;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .main-content {
@@ -213,16 +241,19 @@ tbody tr:hover {
   justify-content: center;
   align-items: center;
   z-index: 9999;
+  padding: 20px;
 }
 
 .receipt-placeholder {
-  max-width: 500px;
-  max-height: 500px;
+  max-width: 700px;
+  max-height: 90vh;
+  width: 100%;
   border-radius: 10px;
   background: #fff;
   color: #111;
   padding: 30px;
   text-align: center;
+  overflow: auto;
 }
 
 .closeReceipt {
@@ -232,6 +263,24 @@ tbody tr:hover {
   font-size: 30px;
   color: white;
   cursor: pointer;
+}
+
+.receipt-image {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  margin-top: 15px;
+  border-radius: 8px;
+}
+
+.receipt-file-box {
+  margin-top: 20px;
+}
+
+.receipt-file-box a {
+  color: #007bff;
+  font-weight: 600;
+  text-decoration: underline;
 }
 
 .status-badge {
@@ -279,7 +328,13 @@ tbody tr:hover {
 }
 
 .processed-text {
-  color: #777;
+  color: #bbb;
   font-weight: 600;
+}
+
+.empty-state {
+  text-align: center;
+  color: #ccc;
+  padding: 30px;
 }
 </style>

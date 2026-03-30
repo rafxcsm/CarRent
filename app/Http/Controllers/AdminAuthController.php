@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Admin;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class AdminAuthController extends Controller
 {
@@ -13,13 +15,9 @@ class AdminAuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $hardcodedEmail = 'rafakijay@gmail.com';
-        $hardcodedPassword = '12345678';
+        $admin = Admin::where('email', $request->email)->first();
 
-        if (
-            $request->email !== $hardcodedEmail ||
-            $request->password !== $hardcodedPassword
-        ) {
+        if (!$admin || !Hash::check($request->password, $admin->password)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid email or password.',
@@ -31,10 +29,10 @@ class AdminAuthController extends Controller
             'message' => 'Login successful.',
             'redirect' => '/admin/dashboard',
             'admin' => [
-                'id' => 1,
-                'name' => 'Admin',
-                'email' => $hardcodedEmail,
-                'role' => 'admin',
+                'id' => $admin->id,
+                'name' => $admin->name,
+                'email' => $admin->email,
+                'role' => $admin->role,
             ],
         ]);
     }
