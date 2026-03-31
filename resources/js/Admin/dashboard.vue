@@ -1,33 +1,30 @@
 <template>
   <div class="dashboard-page">
-    <div v-if="loading" class="status-message">
-      Loading dashboard...
-    </div>
-
-    <div v-else-if="error" class="status-message error-message">
-      {{ error }}
-    </div>
+    <div v-if="loading" class="status-message">Loading dashboard...</div>
+    <div v-else-if="error" class="status-message error-message">{{ error }}</div>
 
     <section v-else class="dashboard-layout">
-      <div class="dashboard-map">
-        <h2>{{ dashboard.location_title }}</h2>
-        <iframe
-          :src="dashboard.map_url"
-          allowfullscreen
-          loading="lazy"
-        ></iframe>
+      <!-- Top Stats -->
+      <div class="stats-row">
+        <div v-for="(stat, index) in dashboard.stats" :key="index" class="stat-box">
+          <h3>{{ stat.value }}</h3>
+          <p>{{ stat.title }}</p>
+        </div>
       </div>
 
-      <div class="dashboard-cards">
-        <div
-          class="card"
-          v-for="(card, index) in dashboard.cards"
-          :key="index"
-        >
-          <div class="circle" :style="{ '--value': card.value }">
-            <span>{{ card.value }}%</span>
-          </div>
-          <p>{{ card.title }}</p>
+      <!-- Booking Status -->
+      <div class="booking-row">
+        <div class="booking-box approved">
+          <h3>{{ dashboard.bookings.approved }}</h3>
+          <p>Approved</p>
+        </div>
+        <div class="booking-box pending">
+          <h3>{{ dashboard.bookings.pending }}</h3>
+          <p>Pending</p>
+        </div>
+        <div class="booking-box denied">
+          <h3>{{ dashboard.bookings.denied }}</h3>
+          <p>Denied</p>
         </div>
       </div>
     </section>
@@ -39,9 +36,8 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
 const dashboard = ref({
-  location_title: '',
-  map_url: '',
-  cards: [],
+  stats: [],
+  bookings: { approved: 0, pending: 0, denied: 0 },
 })
 
 const loading = ref(true)
@@ -49,16 +45,20 @@ const error = ref('')
 
 const fetchDashboard = async () => {
   try {
-    const response = await axios.get('/api/admin/dashboard')
-
+    const response = await axios.get('/admin/dashboard')
     if (response.data?.success) {
-      dashboard.value = response.data.data
+      const data = response.data.data
+      dashboard.value.stats = data.stats || []
+      dashboard.value.bookings = {
+        approved: data.bookings?.approved ?? 0,
+        pending: data.bookings?.pending ?? 0,
+        denied: data.bookings?.denied ?? 0,
+      }
     } else {
       error.value = 'Failed to load dashboard data.'
     }
   } catch (err) {
-    error.value =
-      err.response?.data?.message || 'Failed to load dashboard data.'
+    error.value = err.response?.data?.message || 'Failed to load dashboard data.'
   } finally {
     loading.value = false
   }
@@ -71,16 +71,18 @@ onMounted(() => {
 
 <style scoped>
 .dashboard-page {
-  box-sizing: border-box;
   position: fixed;
   top: 80px;
   left: 317px;
   width: calc(100vw - 317px);
   height: calc(100vh - 80px);
-  padding: 30px;
-  background: black;
+  padding: 20px;
+  background: #0f0f0f;
   overflow-y: auto;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
 .status-message {
@@ -94,98 +96,79 @@ onMounted(() => {
   color: #ffb3b3;
 }
 
-.dashboard-layout {
+/* Top stats row */
+.stats-row {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 25px;
-  align-items: stretch;
-}
-
-.dashboard-map {
-  background: #111;
-  padding: 40px;
-  border-radius: 12px;
-}
-
-.dashboard-map h2 {
-  font-size: 1.3rem;
-  font-weight: 700;
-  margin-top: 0;
-  margin-bottom: 20px;
-  color: white;
-}
-
-.dashboard-map iframe {
-  width: 100%;
-  height: 100%;
-  min-height: 350px;
-  border-radius: 10px;
-  border: none;
-}
-
-.dashboard-cards {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 20px;
+  margin-bottom: 30px;
 }
 
-.card {
-  background: #111;
-  padding: 20px;
-  border-radius: 12px;
+/* Stat Boxes */
+.stat-box {
+  background: #1a1a1a;
+  color: white;
+  padding: 25px 20px;
+  border-radius: 14px;
   text-align: center;
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  transition: transform 0.2s ease;
 }
 
-.card p {
-  font-size: 1rem;
-  color: #ccc;
+.stat-box:hover {
+  transform: translateY(-5px);
 }
 
-.circle {
-  --size: 120px;
-  width: var(--size);
-  height: var(--size);
-  border-radius: 50%;
-  background: conic-gradient(#ffd700 calc(var(--value) * 1%), #333 0%);
+.stat-box h3 {
+  font-size: 2rem;
+  margin: 0 0 8px 0;
+}
+
+/* Booking status row */
+.booking-row {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 15px auto;
-  position: relative;
-  color: #ffd700;
-  font-weight: 700;
-  font-size: 1.4rem;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: space-between;
 }
 
-.circle::before {
-  content: '';
-  position: absolute;
-  width: calc(var(--size) - 20px);
-  height: calc(var(--size) - 20px);
-  background: #0e0e0e;
-  border-radius: 50%;
-  z-index: 0;
+/* Booking Boxes */
+.booking-box {
+  flex: 1 1 calc(33% - 20px);
+  min-width: 150px;
+  padding: 30px 15px;
+  border-radius: 14px;
+  color: white;
+  text-align: center;
+  font-weight: bold;
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  transition: transform 0.2s ease;
 }
 
-.circle span {
-  position: relative;
-  z-index: 1;
+.booking-box:hover {
+  transform: translateY(-5px);
 }
 
-@media (max-width: 1200px) {
-  .navbar {
-    left: 0;
-  }
-
-  .dashboard-page {
-    margin-left: 0;
-  }
+.booking-box h3 {
+  font-size: 2rem;
+  margin: 0 0 8px 0;
 }
 
-@media (max-width: 992px) {
-  .dashboard-layout {
-    grid-template-columns: 1fr;
-  }
+.booking-box p {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.booking-box.approved {
+  background-color: #28a745;
+}
+
+.booking-box.pending {
+  background-color: #ffc107;
+  color: #111;
+}
+
+.booking-box.denied {
+  background-color: #dc3545;
 }
 </style>

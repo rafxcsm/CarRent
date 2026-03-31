@@ -26,3 +26,10 @@ return new class extends Migration
         Schema::dropIfExists('users');
     }
 };
+
+//use App\Models\Admin;
+//Admin::create([
+ //'name' => 'Admin',
+   //  'email' => 'admin@gmail.com',
+     //'password' => Hash::make('admin123')
+ //]);

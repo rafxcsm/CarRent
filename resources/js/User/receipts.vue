@@ -1,13 +1,11 @@
 <template>
-  <div class="receipts-page" :style="{ backgroundImage: `url(${bgImage})` }">
+  <div class="receipts-page">
     <div class="background"></div>
 
     <main class="main-content">
       <section class="receipts-container">
-        <div v-if="showSuccessMessage" class="success-message">
-          Receipt uploaded successfully.
-        </div>
 
+        <!-- Receipts list -->
         <div v-if="receipts.length > 0" id="receiptsList">
           <div
             v-for="receipt in receipts"
@@ -39,23 +37,49 @@
               <hr />
 
               <h4>Payment Receipt</h4>
-              <p><strong>File:</strong> {{ receipt.proof_file || 'N/A' }}</p>
+              <div>
+                <span v-if="receipt.proof_file">
+                  <!-- Always show as link -->
+                  <a
+                    href="#"
+                    @click.prevent="openImageModal(receipt.proof_url)"
+                  >
+                    {{ receipt.proof_file }}
+                  </a>
+                </span>
+                <span v-else>N/A</span>
+              </div>
             </div>
           </div>
         </div>
 
+        <!-- Empty state -->
         <p v-else class="no-receipts">No receipts found.</p>
       </section>
     </main>
+
+    <!-- Modal for viewing full image -->
+    <div v-if="showImageModal" class="image-modal" @click.self="closeImageModal">
+      <div class="image-modal-content">
+        <span class="close-btn" @click="closeImageModal">&times;</span>
+        <img :src="modalImageUrl" alt="Receipt Image" />
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import axios from 'axios'
 
 const showSuccessMessage = ref(false)
 const receipts = ref([])
 
+// Modal state
+const showImageModal = ref(false)
+const modalImageUrl = ref('')
+
+// Format rate with 2 decimal places
 const formatRate = (value) => {
   return Number(value || 0).toLocaleString(undefined, {
     minimumFractionDigits: 2,
@@ -63,33 +87,59 @@ const formatRate = (value) => {
   })
 }
 
-onMounted(() => {
-  const savedReceipts = JSON.parse(localStorage.getItem('receipts') || '[]')
+// Open image modal
+const openImageModal = (url) => {
+  modalImageUrl.value = url
+  showImageModal.value = true
+}
 
-  receipts.value = savedReceipts.filter((receipt) => {
-    return (
-      receipt &&
-      receipt.id &&
-      receipt.date &&
-      receipt.time &&
-      receipt.vehicle &&
-      Number(receipt.rate) > 0
-    )
-  })
+// Close image modal
+const closeImageModal = () => {
+  modalImageUrl.value = ''
+  showImageModal.value = false
+}
 
-  if (receipts.value.length > 0) {
-    showSuccessMessage.value = true
+// Fetch receipts from backend
+const fetchReceipts = async () => {
+  try {
+    const response = await axios.get("/admin/rentals") // Use your correct endpoint
+    if (response.data?.success) {
+      receipts.value = response.data.rentals.map(rental => {
+        const dateObj = new Date(rental.rental_start)
+        return {
+          id: rental.id,
+          vehicle: rental.vehicle,
+          rate: rental.rate,
+          status: rental.status,
+          proof_file: rental.proof_file,
+          proof_url: rental.proof_url,
+          date: dateObj.toLocaleDateString(),
+          time: dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        }
+      })
 
-    setTimeout(() => {
-      showSuccessMessage.value = false
-    }, 2500)
+      if (receipts.value.length > 0) {
+        showSuccessMessage.value = true
+        setTimeout(() => (showSuccessMessage.value = false), 2500)
+      }
+    } else {
+      receipts.value = []
+    }
+  } catch (error) {
+    console.error("Failed to fetch receipts:", error)
+    receipts.value = []
   }
+}
+
+onMounted(() => {
+  fetchReceipts()
 })
 </script>
 
 <style scoped>
+/* Keep your existing styles unchanged */
 .receipts-page {
- box-sizing: border-box;
+  box-sizing: border-box;
   position: fixed;
   top: 80px;
   left: 317px;
@@ -139,7 +189,6 @@ onMounted(() => {
   backdrop-filter: blur(6px);
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
   transition: 0.3s;
-  margin-bottom: 20px;
 }
 
 .receipt-card:hover {
@@ -174,14 +223,6 @@ onMounted(() => {
   font-size: 1.1rem;
   text-align: center;
   opacity: 0.7;
-}
-
-.success-message {
-  margin-bottom: 15px;
-  padding: 12px;
-  border-radius: 8px;
-  background: #e8f7e8;
-  color: #1f7a1f;
 }
 
 .status-badge {
@@ -221,4 +262,44 @@ onMounted(() => {
     padding: 20px;
   }
 }
-</style>
+
+/* Modal styles */
+/* Modal styles */
+.image-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.image-modal-content {
+  position: relative;
+  max-width: 500px;   /* max width of modal */
+  max-height: 400px;  /* max height of modal */
+  width: 90%;
+  height: auto;
+}
+
+.image-modal-content img {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+.image-modal-content .close-btn {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #fff;
+  cursor: pointer;
+  background: rgba(0,0,0,0.6);
+  border-radius: 50%;
+  padding: 0 10px;
+  line-height: 1;
+}
+</style>  

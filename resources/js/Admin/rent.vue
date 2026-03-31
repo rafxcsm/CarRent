@@ -8,6 +8,7 @@
               <th>ID</th>
               <th>Customer</th>
               <th>Vehicle</th>
+              <th>Rental Start</th>
               <th>Payment Receipt</th>
               <th>Status</th>
               <th>Action</th>
@@ -20,6 +21,12 @@
               <td>{{ rental.customer }}</td>
               <td>{{ rental.vehicle }}</td>
 
+              <!-- Rental Start -->
+              <td>
+                {{ formatDate(rental.rental_start) }}
+              </td>
+
+              <!-- Receipt -->
               <td>
                 <span
                   v-if="rental.proof_file"
@@ -31,6 +38,7 @@
                 <span v-else>N/A</span>
               </td>
 
+              <!-- Status -->
               <td class="status-cell">
                 <span
                   class="status-badge"
@@ -40,33 +48,58 @@
                 </span>
               </td>
 
+              <!-- Action -->
               <td>
                 <template v-if="rental.status === 'pending'">
-                  <button class="approveBtn" @click="approveRental(rental.id)">
+                  <button
+                    class="approveBtn"
+                    @click="approveRental(rental.id)"
+                  >
                     Approve
                   </button>
-                  <button class="denyBtn" @click="denyRental(rental.id)">
+
+                  <button
+                    class="denyBtn"
+                    @click="denyRental(rental.id)"
+                  >
                     Deny
                   </button>
                 </template>
+
                 <template v-else>
-                  <span class="processed-text">Processed</span>
+                  <span class="processed-text">
+                    Processed
+                  </span>
                 </template>
               </td>
             </tr>
 
             <tr v-if="!rentals.length">
-              <td colspan="6" class="empty-state">No rentals found.</td>
+              <td colspan="7" class="empty-state">
+                No rentals found.
+              </td>
             </tr>
           </tbody>
         </table>
       </section>
     </main>
 
-    <div v-if="showReceiptModal" id="receiptModal" @click.self="closeReceipt">
-      <span class="closeReceipt" @click="closeReceipt">&times;</span>
+    <!-- Receipt Modal -->
+    <div
+      v-if="showReceiptModal"
+      id="receiptModal"
+      @click.self="closeReceipt"
+    >
+      <span
+        class="closeReceipt"
+        @click="closeReceipt"
+      >
+        &times;
+      </span>
+
       <div class="receipt-placeholder">
         <h3>Receipt Preview</h3>
+
         <p>{{ selectedReceipt }}</p>
 
         <img
@@ -76,30 +109,39 @@
           class="receipt-image"
         />
 
-        <div v-else-if="selectedReceiptUrl" class="receipt-file-box">
-          <a :href="selectedReceiptUrl" target="_blank" rel="noopener noreferrer">
+        <div
+          v-else-if="selectedReceiptUrl"
+          class="receipt-file-box"
+        >
+          <a
+            :href="selectedReceiptUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Open Receipt File
           </a>
         </div>
 
-        <p v-else>No file uploaded yet.</p>
+        <p v-else>
+          No file uploaded yet.
+        </p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { ref, onMounted } from "vue"
+import axios from "axios"
 
 const showReceiptModal = ref(false)
-const selectedReceipt = ref('')
-const selectedReceiptUrl = ref('')
+const selectedReceipt = ref("")
+const selectedReceiptUrl = ref("")
 const rentals = ref([])
 
 const fetchRentals = async () => {
   try {
-    const response = await axios.get('/admin/rentals')
+    const response = await axios.get("/admin/rentals")
 
     if (response.data?.success) {
       rentals.value = response.data.rentals
@@ -107,7 +149,7 @@ const fetchRentals = async () => {
       rentals.value = []
     }
   } catch (error) {
-    console.error('Failed to fetch rentals:', error)
+    console.error("Failed to fetch rentals:", error)
     rentals.value = []
   }
 }
@@ -117,45 +159,71 @@ onMounted(() => {
 })
 
 const openReceipt = (rental) => {
-  selectedReceipt.value = rental.proof_file || 'No receipt uploaded'
-  selectedReceiptUrl.value = rental.proof_url || ''
+  selectedReceipt.value =
+    rental.proof_file || "No receipt uploaded"
+
+  selectedReceiptUrl.value =
+    rental.proof_url || ""
+
   showReceiptModal.value = true
 }
 
 const closeReceipt = () => {
-  selectedReceipt.value = ''
-  selectedReceiptUrl.value = ''
+  selectedReceipt.value = ""
+  selectedReceiptUrl.value = ""
   showReceiptModal.value = false
 }
 
 const approveRental = async (id) => {
   try {
-    const response = await axios.put(`/admin/rentals/${id}/approve`)
+    const response = await axios.put(
+      `/admin/rentals/${id}/approve`
+    )
 
     if (response.data?.success) {
       await fetchRentals()
     }
   } catch (error) {
-    console.error('Approve failed:', error)
-    alert(error.response?.data?.message || 'Failed to approve rental.')
+    console.error("Approve failed:", error)
+    alert(
+      error.response?.data?.message ||
+        "Failed to approve rental."
+    )
   }
 }
 
 const denyRental = async (id) => {
   try {
-    const response = await axios.put(`/admin/rentals/${id}/deny`)
+    const response = await axios.put(
+      `/admin/rentals/${id}/deny`
+    )
 
     if (response.data?.success) {
       await fetchRentals()
     }
   } catch (error) {
-    console.error('Deny failed:', error)
-    alert(error.response?.data?.message || 'Failed to deny rental.')
+    console.error("Deny failed:", error)
+    alert(
+      error.response?.data?.message ||
+        "Failed to deny rental."
+    )
   }
 }
 
 const isImage = (url) => {
   return /\.(jpg|jpeg|png|gif|webp)$/i.test(url)
+}
+
+const formatDate = (date) => {
+  if (!date) return "N/A"
+
+  return new Date(date).toLocaleString("en-PH", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
 }
 </script>
 
@@ -168,7 +236,7 @@ const isImage = (url) => {
   width: calc(100vw - 317px);
   height: calc(100vh - 80px);
   padding: 30px;
-  background: black;
+  background: #0f0f0f;
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -177,164 +245,198 @@ const isImage = (url) => {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  position: relative;
-  z-index: 1;
 }
 
 .content-section {
-  margin-top: 40px;
-  background: rgba(0, 0, 0, 0.6);
-  border-radius: 15px;
-  padding: 40px;
-  backdrop-filter: blur(3px);
-  flex: 1;
+  margin-top: 10px;
+  background: rgba(20, 20, 20, 0.9);
+  border-radius: 14px;
+  padding: 25px;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255,255,255,0.05);
 }
+
+/* Table */
 
 table {
   width: 100%;
   border-collapse: collapse;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 12px;
   overflow: hidden;
-  margin-bottom: 25px;
 }
 
 thead {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-th,
-td {
-  text-align: left;
-  padding: 12px 18px;
-  font-size: 0.95rem;
+  background: rgba(255,255,255,0.06);
 }
 
 th {
+  text-align: left;
+  padding: 14px 18px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.5px;
+  color: #bbb;
+  letter-spacing: .5px;
+}
+
+td {
+  padding: 14px 18px;
+  font-size: 14px;
+  color: #e4e4e4;
 }
 
 tbody tr {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  transition: background 0.3s;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: 0.2s ease;
 }
 
 tbody tr:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255,255,255,0.04);
 }
 
+/* Receipt */
+
 .receipt-link {
-  color: #007bff;
+  color: #4da3ff;
   cursor: pointer;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.receipt-link:hover {
   text-decoration: underline;
 }
 
+/* Status */
+
+.status-cell {
+  width: 130px;
+}
+
+.status-badge {
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+
+.status-pending {
+  background: rgba(255,193,7,.15);
+  color: #ffc107;
+}
+
+.status-approved {
+  background: rgba(40,167,69,.15);
+  color: #28a745;
+}
+
+.status-denied {
+  background: rgba(220,53,69,.15);
+  color: #dc3545;
+}
+
+/* Buttons */
+
+.approveBtn {
+  background: #22c55e;
+  border: none;
+  padding: 7px 14px;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: .2s ease;
+}
+
+.approveBtn:hover {
+  background: #16a34a;
+}
+
+.denyBtn {
+  background: #ef4444;
+  border: none;
+  padding: 7px 14px;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  margin-left: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: .2s ease;
+}
+
+.denyBtn:hover {
+  background: #dc2626;
+}
+
+.processed-text {
+  color: #888;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Modal */
+
 #receiptModal {
-  display: flex;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0,0,0,.75);
+  display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
-  padding: 20px;
 }
 
 .receipt-placeholder {
-  max-width: 700px;
-  max-height: 90vh;
-  width: 100%;
-  border-radius: 10px;
-  background: #fff;
-  color: #111;
+  background: #1a1a1a;
   padding: 30px;
-  text-align: center;
-  overflow: auto;
+  border-radius: 12px;
+  max-width: 650px;
+  width: 100%;
+  color: white;
+  box-shadow: 0 0 40px rgba(0,0,0,.6);
+}
+
+.receipt-placeholder h3 {
+  margin-bottom: 15px;
 }
 
 .closeReceipt {
   position: absolute;
-  top: 30px;
+  top: 25px;
   right: 40px;
-  font-size: 30px;
   color: white;
+  font-size: 28px;
   cursor: pointer;
 }
 
 .receipt-image {
   max-width: 100%;
-  max-height: 400px;
-  object-fit: contain;
-  margin-top: 15px;
+  margin-top: 20px;
   border-radius: 8px;
 }
 
-.receipt-file-box {
-  margin-top: 20px;
+.receipt-file-box a {
+  color: #4da3ff;
+  text-decoration: none;
 }
 
-.receipt-file-box a {
-  color: #007bff;
-  font-weight: 600;
+.receipt-file-box a:hover {
   text-decoration: underline;
 }
 
-.status-badge {
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.status-pending {
-  background: #fff3cd;
-  color: #856404;
-}
-
-.status-approved {
-  background: #d4edda;
-  color: #155724;
-}
-
-.status-denied {
-  background: #f8d7da;
-  color: #721c24;
-}
-
-.approveBtn,
-.denyBtn {
-  border: none;
-  padding: 8px 14px;
-  margin-right: 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.approveBtn {
-  background: #2ecc71;
-  color: white;
-}
-
-.denyBtn {
-  background: #e74c3c;
-  color: white;
-}
-
-.processed-text {
-  color: #bbb;
-  font-weight: 600;
-}
+/* Empty */
 
 .empty-state {
   text-align: center;
-  color: #ccc;
   padding: 30px;
+  color: #888;
+  font-size: 14px;
 }
 </style>

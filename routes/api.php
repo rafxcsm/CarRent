@@ -8,23 +8,48 @@ use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\RentalController;
+use App\Http\Controllers\OwnerController;
 
+
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+*/
+
+// User authentication
 Route::post('/signup', [SignupController::class, 'store']);
 Route::post('/login', [LoginController::class, 'login']);
 
+// User vehicle & rental
 Route::get('/user/vehicles', [UserVehicleController::class, 'index']);
-
 Route::post('/user/rentals', [RentalController::class, 'store']);
 
+/*
+|--------------------------------------------------------------------------
+| Admin Routes
+|--------------------------------------------------------------------------
+*/
 
-Route::post('/admin/login', [AdminAuthController::class, 'login']);
-Route::get('/admin/dashboard', [DashboardController::class, 'index']);
+Route::prefix('admin')->group(function () {
+    // Admin authentication
+    Route::post('/login', [AdminAuthController::class, 'login']);
 
-Route::get('/admin/vehicles', [VehicleController::class, 'index']);
-Route::post('/admin/vehicles', [VehicleController::class, 'store']);
-Route::post('/admin/vehicles/{id}', [VehicleController::class, 'update']);
-Route::delete('/admin/vehicles/{id}', [VehicleController::class, 'destroy']);
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index']);
 
-Route::get('/admin/rentals', [RentalController::class, 'index']);
-Route::put('/admin/rentals/{id}/approve', [RentalController::class, 'approve']);
-Route::put('/admin/rentals/{id}/deny', [RentalController::class, 'deny']);
+    // Vehicle management
+    Route::get('/vehicles', [VehicleController::class, 'index']);
+    Route::post('/vehicles', [VehicleController::class, 'store']);
+    Route::put('/vehicles/{id}', [VehicleController::class, 'update']); // Corrected from POST
+    Route::delete('/vehicles/{id}', [VehicleController::class, 'destroy']);
+
+    // Rental management
+    Route::get('/rentals', [RentalController::class, 'index']);
+    Route::put('/rentals/{id}/approve', [RentalController::class, 'approve']);
+    Route::put('/rentals/{id}/deny', [RentalController::class, 'deny']);
+
+    Route::get('/owners', [OwnerController::class, 'index']);
+    Route::delete('/owners/{id}', [OwnerController::class, 'destroy']);
+
+});

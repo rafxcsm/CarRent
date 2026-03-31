@@ -60,9 +60,6 @@
           <ul id="carFeatures">
             <li><strong>Brand:</strong> {{ selectedVehicle.brand }}</li>
             <li><strong>Model:</strong> {{ selectedVehicle.model }}</li>
-            <li><strong>Seats:</strong> {{ selectedVehicle.seats || 'N/A' }}</li>
-            <li><strong>Transmission:</strong> {{ selectedVehicle.transmission || 'N/A' }}</li>
-            <li><strong>Fuel:</strong> {{ selectedVehicle.fuel || 'N/A' }}</li>
             <li><strong>Status:</strong> {{ selectedVehicle.status }}</li>
           </ul>
         </div>
@@ -224,7 +221,7 @@ const handleProofFile = (event) => {
 }
 
 
- const confirmBooking = async () => {
+const confirmBooking = async () => {
   if (!booking.date || !booking.time || !booking.proofFile) {
     alert('Please select booking date, time, and upload a file or image.')
     return
@@ -259,10 +256,32 @@ const handleProofFile = (event) => {
     })
 
     if (response.data?.success) {
+
+      const receipt = {
+        id: Date.now(),
+        date: booking.date,
+        time: booking.time,
+        vehicle: `${selectedVehicle.brand} ${selectedVehicle.model}`,
+        rate: selectedVehicle.rate,
+        status: 'pending',
+        proof_file: booking.proofFile?.name || null
+      }
+
+      const existingReceipts =
+        JSON.parse(localStorage.getItem('receipts')) || []
+
+      existingReceipts.unshift(receipt)
+
+      localStorage.setItem(
+        'receipts',
+        JSON.stringify(existingReceipts)
+      )
+
       processingDone.value = true
     } else {
       throw new Error(response.data?.message || 'Rental failed.')
     }
+
   } catch (error) {
     console.error('Rental failed:', error)
     alert(error.response?.data?.message || 'Failed to submit rental.')

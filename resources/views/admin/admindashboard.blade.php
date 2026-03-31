@@ -75,14 +75,14 @@
       <div class="circle" style="--value:80;">
         <span>80%</span>
       </div>
-      <p>Daily Vehicles Summary</p>
+      <p>Total Vehicle</p>
     </div>
 
     <div class="card">
       <div class="circle" style="--value:95;">
         <span>95%</span>
       </div>
-      <p>Daily Sales Summary</p>
+      <p>Available Cars % Rented Cars</p>
     </div>
   </div>
 
