@@ -1,0 +1,13 @@
+{
+  "appId": "com.carrent.customer",
+  "appName": "Drivora",
+  "webDir": "android-user/www",
+  "server": {
+    "hostname": "carrent.localhost",
+    "androidScheme": "http",
+    "cleartext": true
+  },
+  "android": {
+    "backgroundColor": "#0c1625"
+  }
+}

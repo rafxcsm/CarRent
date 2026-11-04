@@ -4,10 +4,15 @@
       <section class="content-section">
         <!-- Search Bar -->
         <div class="search-bar">
-          <input v-model="search" @input="fetchOwners" type="text" placeholder="Search..." />
+          <input
+            v-model="search"
+            @input="fetchUsers"
+            type="text"
+            placeholder="Search..."
+          />
         </div>
 
-        <!-- Owners Table -->
+        <!-- Users Table -->
         <table>
           <thead>
             <tr>
@@ -20,23 +25,27 @@
           </thead>
           <tbody>
             <tr
-              v-for="owner in owners"
-              :key="owner.id"
-              :class="{ 'selected-row': selectedOwner?.id === owner.id }"
-              @click="selectOwner(owner)"
+              v-for="user in users"
+              :key="user.id"
+              :class="{ 'selected-row': selectedUser?.id === user.id }"
+              @click="selectUser(user)"
             >
-              <td>{{ owner.id }}</td>
-              <td>{{ owner.full_name }}</td>
-              <td>{{ owner.contact_no }}</td>
-              <td>{{ owner.address }}</td>
-              <td>{{ owner.license_no }}</td>
+              <td>{{ user.id }}</td>
+              <td>{{ user.full_name }}</td>
+<td>{{ user.contact_no }}</td>
+<td>{{ user.address }}</td>
+<td>{{ user.license_no }}</td>
+            </tr>
+
+            <tr v-if="users.length === 0">
+              <td colspan="5" class="empty-row">No users found.</td>
             </tr>
           </tbody>
         </table>
 
         <!-- Delete Button -->
         <div class="action-buttons">
-          <button @click="openDeleteModal">Delete</button>
+          <button class="button-danger" @click="openDeleteModal">Delete</button>
         </div>
       </section>
     </main>
@@ -44,10 +53,10 @@
     <!-- Delete Modal -->
     <div v-if="showDeleteModal" class="modal" @click.self="closeDeleteModal">
       <div class="modal-content small">
-        <h3>Are you sure you want to delete this owner?</h3>
+        <h3>Are you sure you want to delete this user?</h3>
         <div class="modal-buttons">
-          <button id="confirmDelete" @click="deleteOwner">Yes</button>
-          <button class="closeBtn" @click="closeDeleteModal">Cancel</button>
+          <button id="confirmDelete" class="button-danger" @click="deleteUser">Yes</button>
+          <button class="closeBtn button-secondary" @click="closeDeleteModal">Cancel</button>
         </div>
       </div>
     </div>
@@ -56,31 +65,62 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import api from '@/api'
 
 const search = ref('')
-const owners = ref([])
-const selectedOwner = ref(null)
+const users = ref([])
+const selectedUser = ref(null)
 const showDeleteModal = ref(false)
 
-const fetchOwners = async () => {
+const fetchUsers = async () => {
+
   try {
-    const response = await axios.get('/owners', { params: { search: search.value } })
-    if (response.data.success) owners.value = response.data.data
+
+    // ✅ CORRECT ADMIN ROUTE
+    const response = await api.get('/admin/owners', {
+      params: {
+        search: search.value
+      }
+    })
+
+    if (response.data.success) {
+
+      // ✅ CORRECT RESPONSE FIELD
+      users.value = response.data.data || []
+
+    } else {
+
+      users.value = []
+
+    }
+
   } catch (err) {
-    console.error('Failed to fetch owners', err)
+
+    console.error('Failed to fetch users', err)
+
+    users.value = []
+
+    alert(
+      err.response?.data?.message ||
+      'Failed to fetch users.'
+    )
+
   }
 }
 
-const selectOwner = owner => {
-  selectedOwner.value = owner
+const selectUser = (user) => {
+  selectedUser.value = user
 }
 
 const openDeleteModal = () => {
-  if (!selectedOwner.value) {
-    alert('Please select an owner to delete.')
+
+  if (!selectedUser.value) {
+
+    alert('Please select a user to delete.')
+
     return
   }
+
   showDeleteModal.value = true
 }
 
@@ -88,20 +128,39 @@ const closeDeleteModal = () => {
   showDeleteModal.value = false
 }
 
-const deleteOwner = async () => {
-  if (!selectedOwner.value) return
+const deleteUser = async () => {
+
+  if (!selectedUser.value) return
+
   try {
-    await axios.delete(`/api/owners/${selectedOwner.value.id}`)
-    owners.value = owners.value.filter(o => o.id !== selectedOwner.value.id)
-    selectedOwner.value = null
+
+    // ✅ CORRECT DELETE ROUTE
+    await api.delete(
+      `/admin/owners/${selectedUser.value.id}`
+    )
+
+    users.value = users.value.filter(
+      user => user.id !== selectedUser.value.id
+    )
+
+    selectedUser.value = null
+
     closeDeleteModal()
+
   } catch (err) {
-    console.error('Failed to delete owner', err)
+
+    console.error('Failed to delete user', err)
+
+    alert(
+      err.response?.data?.message ||
+      'Failed to delete user.'
+    )
+
   }
 }
 
 onMounted(() => {
-  fetchOwners()
+  fetchUsers()
 })
 </script>
 
@@ -155,7 +214,8 @@ thead {
   background: rgba(255, 255, 255, 0.1);
 }
 
-th, td {
+th,
+td {
   text-align: left;
   padding: 10px 12px;
   font-size: 0.9rem;
@@ -173,6 +233,12 @@ tbody tr:hover {
 
 .selected-row {
   background: rgba(255, 215, 0, 0.3) !important;
+}
+
+.empty-row {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 20px;
 }
 
 .action-buttons {
@@ -198,7 +264,7 @@ tbody tr:hover {
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -210,6 +276,10 @@ tbody tr:hover {
   border-radius: 12px;
   width: 320px;
   text-align: center;
+}
+
+.modal-content h3 {
+  color: white;
 }
 
 .modal-buttons {

@@ -22,6 +22,13 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
+    'supabase' => [
+        'url' => env('SUPABASE_URL'),
+        'service_role_key' => env('SUPABASE_SERVICE_ROLE_KEY'),
+        'vehicle_bucket' => env('SUPABASE_VEHICLE_BUCKET', 'vehicle-images'),
+        'proof_bucket' => env('SUPABASE_PROOF_BUCKET', 'rental-proofs'),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

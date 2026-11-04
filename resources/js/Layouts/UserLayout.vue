@@ -1,19 +1,15 @@
 <template>
-  <div class="user-layout">
-    <UserSidebar v-if="showLayoutParts" />
-    <div :class="showLayoutParts ? 'main-wrapper' : 'full-wrapper'">
-      <UserNavbar v-if="showLayoutParts" />
-      <main class="page-content">
-        <router-view />
-      </main>
-    </div>
+  <div class="app-shell user-layout">
+    <UserNavbar v-if="showLayoutParts" />
+    <main class="page-content">
+      <router-view />
+    </main>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import UserSidebar from '../components/user/sidebar.vue'
 import UserNavbar from '../components/user/navbar.vue'
 
 const route = useRoute()
@@ -25,27 +21,12 @@ const showLayoutParts = computed(() => {
 
 <style scoped>
 .user-layout {
-  display: flex;
+  display: block;
   min-height: 100vh;
-  background: #0e0e0e;
-}
-
-.main-wrapper {
-  margin-left: 317px;
-  width: calc(100% - 317px);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.full-wrapper {
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  background: #f3f4f6;
 }
 
 .page-content {
-  flex: 1;
+  min-height: 100vh;
 }
 </style>

@@ -4,9 +4,14 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "build:android-user": "vite build --config vite.user.config.js --mode mobile",
+        "build:android-user:usb": "vite build --config vite.user.config.js --mode usb"
     },
     "devDependencies": {
+        "@capacitor/android": "^8.5.3",
+        "@capacitor/cli": "^8.5.3",
+        "@capacitor/core": "^8.5.3",
         "@tailwindcss/vite": "^4.0.0",
         "@vitejs/plugin-vue": "^6.0.5",
         "axios": "^1.13.6",
@@ -19,6 +24,8 @@
         "@inertiajs/vue3": "^2.3.18",
         "chart.js": "^4.5.1",
         "chartjs-plugin-datalabels": "^2.2.0",
+        "html5-qrcode": "^2.3.8",
+        "qrcode": "^1.5.4",
         "vue": "^3.5.30",
         "vue-router": "^4.6.4"
     }

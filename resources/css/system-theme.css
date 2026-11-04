@@ -1,0 +1,692 @@
+:root {
+  color-scheme: light;
+  --app-header-height: 76px;
+  --surface-page: #f3f7fd;
+  --surface-card: #ffffff;
+  --surface-muted: #edf3fb;
+  --surface-raised: #f8fbff;
+  --line-subtle: #dce6f2;
+  --text-primary: #152b45;
+  --text-secondary: #52677f;
+  --text-muted: #7d90a7;
+  --blue: #2563eb;
+  --blue-hover: #1d4ed8;
+  --blue-pressed: #1e40af;
+  --blue-soft: #eaf2ff;
+  --blue-border: #c7daf8;
+  --blue-ink: #174ea6;
+  --danger: #b4233c;
+  --danger-soft: #fff0f2;
+  --success: #14775b;
+  --success-soft: #eaf7f1;
+  --warning: #94640d;
+  --warning-soft: #fff7e7;
+  --overlay: rgba(18, 38, 64, 0.48);
+  --shadow-card: 0 12px 32px rgba(25, 55, 94, 0.075);
+  --shadow-popover: 0 22px 60px rgba(18, 38, 64, 0.2);
+  --focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.17);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-page: #0c1625;
+  --surface-card: #142238;
+  --surface-muted: #1a2b43;
+  --surface-raised: #182a42;
+  --line-subtle: #2b405d;
+  --text-primary: #e8f0fb;
+  --text-secondary: #b0c1d6;
+  --text-muted: #8da2bc;
+  --blue: #5b98ff;
+  --blue-hover: #79adff;
+  --blue-pressed: #a3c7ff;
+  --blue-soft: #1c3558;
+  --blue-border: #395a83;
+  --blue-ink: #c7ddff;
+  --danger: #ff9aaa;
+  --danger-soft: #40232f;
+  --success: #78d6b0;
+  --success-soft: #19382f;
+  --warning: #f2cc79;
+  --warning-soft: #3d3423;
+  --overlay: rgba(2, 8, 17, 0.72);
+  --shadow-card: 0 14px 38px rgba(0, 0, 0, 0.22);
+  --shadow-popover: 0 24px 64px rgba(0, 0, 0, 0.42);
+  --focus-ring: 0 0 0 3px rgba(91, 152, 255, 0.24);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--app-header-height) + 18px);
+}
+
+body {
+  color: var(--text-primary);
+  background: var(--surface-page);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: color 180ms ease, background-color 180ms ease;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: var(--blue);
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+::selection {
+  color: #fff;
+  background: var(--blue);
+}
+
+@media (max-width: 680px) {
+  :root {
+    --app-header-height: 112px;
+  }
+}
+
+/* Shared page canvas beneath the fixed navigation. */
+.dashboard-page,
+.owners-page,
+.rent-page,
+.receipts-page,
+.vehicles-page {
+  position: fixed !important;
+  top: var(--app-header-height) !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: calc(100vh - var(--app-header-height)) !important;
+  padding: clamp(18px, 3vw, 40px) !important;
+  overflow: auto !important;
+  color: var(--text-primary) !important;
+  background: var(--surface-page) !important;
+  background-image: none !important;
+}
+
+.dashboard-layout,
+.owners-page .main-content,
+.rent-page .main-content,
+.vehicles-page .main-content,
+.receipts-page .main-content {
+  width: min(100%, 1440px);
+  margin: 0 auto;
+}
+
+.dashboard-layout {
+  padding: 6px 0 24px;
+}
+
+.vehicles-page .background,
+.login-page .overlay,
+.signup-page .overlay {
+  display: none !important;
+}
+
+.receipts-page .main-content,
+.vehicles-page .main-content {
+  min-height: auto !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+#receiptModal {
+  background: var(--overlay) !important;
+}
+
+.receipts-page .receipts-container {
+  gap: 20px !important;
+}
+
+.content-section,
+.stat-box,
+.booking-box,
+.vehicle-card,
+.receipt-card {
+  border: 1px solid var(--line-subtle) !important;
+  border-radius: 18px !important;
+  color: var(--text-primary) !important;
+  background: var(--surface-card) !important;
+  box-shadow: var(--shadow-card) !important;
+  backdrop-filter: none !important;
+}
+
+.content-section {
+  padding: clamp(18px, 3vw, 32px) !important;
+}
+
+.stat-box,
+.booking-box {
+  text-align: left !important;
+  padding: 25px !important;
+}
+
+.stat-box h3,
+.booking-box h3,
+.rent-toolbar h2,
+.vehicle-card h2,
+.receipt-card h3,
+.car-details-container h2,
+.booking-modal-content h4,
+.processing-content h3,
+.modal-content h2,
+.modal-content h3,
+.receipt-placeholder h3,
+.qr-modal-content h3,
+.scanner-modal h2 {
+  color: var(--text-primary) !important;
+}
+
+.stat-box p,
+.booking-box p,
+.rent-toolbar p,
+.discount-detail,
+.muted,
+.empty-state,
+.no-receipts,
+.profile-info p,
+.scanner-intro,
+.qr-modal-content p,
+.modal-content p,
+.receipt-details,
+.receipt-details p,
+.booking-modal-content label,
+.car-info-box {
+  color: var(--text-secondary) !important;
+}
+
+.booking-box.approved {
+  border-left: 4px solid var(--success) !important;
+}
+
+.booking-box.pending {
+  border-left: 4px solid var(--warning) !important;
+}
+
+.booking-box.denied {
+  border-left: 4px solid var(--danger) !important;
+}
+
+.rent-toolbar {
+  color: var(--text-primary) !important;
+}
+
+.vehicles-page .vehicles-grid {
+  margin-top: 12px !important;
+  gap: 22px !important;
+}
+
+.vehicle-card {
+  width: min(100%, 330px) !important;
+  padding: 18px !important;
+  transition: transform 180ms ease, box-shadow 180ms ease !important;
+}
+
+.vehicle-card:hover,
+.receipt-card:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: var(--shadow-popover) !important;
+}
+
+.vehicle-card img {
+  border-radius: 13px !important;
+}
+
+.car-details-container .price,
+.vehicle-card .price {
+  color: var(--blue) !important;
+}
+
+.vehicle-card .price span {
+  color: var(--text-muted) !important;
+}
+
+.receipt-card {
+  padding: clamp(20px, 3vw, 28px) !important;
+  transition: transform 180ms ease, box-shadow 180ms ease !important;
+}
+
+.receipt-card h3 {
+  margin-top: 0;
+}
+
+.receipt-details hr {
+  border-color: var(--line-subtle) !important;
+}
+
+.car-details-popup,
+.booking-modal,
+.processing-modal,
+.image-modal,
+.modal,
+.qr-modal,
+.scanner-overlay {
+  background: var(--overlay) !important;
+  backdrop-filter: blur(5px);
+}
+
+.car-details-container,
+.booking-modal-content,
+.processing-content,
+.modal-content,
+.receipt-placeholder,
+.qr-modal-content,
+.scanner-modal {
+  border: 1px solid var(--line-subtle) !important;
+  border-radius: 18px !important;
+  color: var(--text-primary) !important;
+  background: var(--surface-card) !important;
+  box-shadow: var(--shadow-popover) !important;
+}
+
+.car-details-container .close-btn,
+.booking-modal-content .close-btn,
+.qr-modal-content .close-btn,
+.image-modal-content .close-btn,
+.scanner-close,
+.closeReceipt {
+  color: var(--text-secondary) !important;
+}
+
+.search-bar input,
+.booking-modal-content input,
+.booking-modal-content select,
+.modal-content input,
+.modal-content select,
+.login-box input,
+.signup-box input {
+  border: 1px solid var(--line-subtle) !important;
+  border-radius: 10px !important;
+  outline: none !important;
+  color: var(--text-primary) !important;
+  background: var(--surface-raised) !important;
+}
+
+.booking-modal-content input[type="file"] {
+  color: var(--text-secondary) !important;
+}
+
+.booking-modal-content select option {
+  color: var(--text-primary);
+  background: var(--surface-card);
+}
+
+.search-bar input::placeholder,
+.login-box input::placeholder,
+.signup-box input::placeholder {
+  color: var(--text-muted) !important;
+}
+
+.search-bar input:focus,
+.booking-modal-content input:focus,
+.booking-modal-content select:focus,
+.modal-content input:focus,
+.modal-content select:focus,
+.login-box input:focus,
+.signup-box input:focus {
+  border-color: var(--blue) !important;
+  box-shadow: var(--focus-ring) !important;
+}
+
+.owners-page table,
+.vehicles-page table,
+.rent-page table {
+  width: 100%;
+  border: 1px solid var(--line-subtle) !important;
+  border-radius: 14px !important;
+  background: var(--surface-card) !important;
+  overflow: hidden;
+}
+
+.owners-page thead,
+.vehicles-page thead,
+.rent-page thead {
+  background: var(--surface-muted) !important;
+}
+
+.owners-page th,
+.owners-page td,
+.vehicles-page th,
+.vehicles-page td,
+.rent-page th,
+.rent-page td {
+  border-color: var(--line-subtle) !important;
+  color: var(--text-secondary) !important;
+}
+
+.owners-page th,
+.vehicles-page th,
+.rent-page th {
+  color: var(--text-primary) !important;
+  font-size: 0.76rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.06em !important;
+}
+
+.owners-page tbody tr,
+.vehicles-page tbody tr,
+.rent-page tbody tr {
+  border-color: var(--line-subtle) !important;
+}
+
+.owners-page tbody tr:hover,
+.vehicles-page tbody tr:hover,
+.rent-page tbody tr:hover {
+  background: var(--surface-raised) !important;
+}
+
+html[data-theme] .owners-page tbody tr.selected-row,
+html[data-theme] .vehicles-page tbody tr.selected {
+  background: var(--blue-soft) !important;
+  outline: 1px solid var(--blue-border) !important;
+}
+
+button {
+  border-radius: 10px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+button:disabled {
+  opacity: 0.56;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn-link,
+.button-primary,
+.signup-box button,
+#bookNowBtn,
+.confirm-btn,
+.ok-btn,
+.qr-button,
+.scan-button,
+.view-btn,
+.approveBtn,
+.verify-discount-btn,
+.action-buttons button:not(.button-secondary):not(.button-danger),
+.modal-buttons button:not(.button-secondary):not(.button-danger):not(.closeBtn),
+.modal-content button:not(.button-secondary):not(.button-danger):not(.closeBtn) {
+  border: 1px solid var(--blue) !important;
+  border-radius: 10px !important;
+  color: #fff !important;
+  background: var(--blue) !important;
+  box-shadow: none !important;
+}
+
+.btn-link:hover,
+.button-primary:hover,
+.signup-box button:hover,
+#bookNowBtn:hover,
+.confirm-btn:hover,
+.ok-btn:hover,
+.qr-button:hover,
+.scan-button:hover,
+.view-btn:hover,
+.approveBtn:hover,
+.verify-discount-btn:hover,
+.action-buttons button:not(.button-secondary):not(.button-danger):hover,
+.modal-buttons button:not(.button-secondary):not(.button-danger):not(.closeBtn):hover,
+.modal-content button:not(.button-secondary):not(.button-danger):not(.closeBtn):hover {
+  color: #fff !important;
+  background: var(--blue-hover) !important;
+  border-color: var(--blue-hover) !important;
+  transform: translateY(-1px);
+}
+
+.button-secondary,
+.denyBtn,
+.reject-discount-btn,
+.closeBtn,
+.scanner-secondary {
+  border: 1px solid var(--blue-border) !important;
+  color: var(--blue-ink) !important;
+  background: var(--blue-soft) !important;
+}
+
+.button-secondary:hover,
+.denyBtn:hover,
+.reject-discount-btn:hover,
+.closeBtn:hover,
+.scanner-secondary:hover {
+  border-color: var(--blue) !important;
+  color: var(--blue-ink) !important;
+  background: var(--surface-muted) !important;
+}
+
+.button-danger,
+.danger-btn,
+.action-buttons button.button-danger,
+.modal-buttons button.button-danger,
+.modal-content button.button-danger {
+  border: 1px solid var(--danger) !important;
+  color: var(--danger) !important;
+  background: var(--danger-soft) !important;
+}
+
+.button-danger:hover,
+.danger-btn:hover,
+.action-buttons button.button-danger:hover,
+.modal-buttons button.button-danger:hover,
+.modal-content button.button-danger:hover {
+  color: #fff !important;
+  background: var(--danger) !important;
+}
+
+.processed-text,
+.pickup-verified,
+.discount-amount,
+.qr-verified,
+.scan-success,
+.scan-stage-note {
+  color: var(--success) !important;
+}
+
+.status-badge,
+.discount-pending,
+.discount-verified,
+.discount-rejected {
+  border-radius: 999px !important;
+}
+
+.status-approved,
+.discount-verified {
+  color: var(--success) !important;
+  background: var(--success-soft) !important;
+}
+
+.status-pending,
+.discount-pending {
+  color: var(--warning) !important;
+  background: var(--warning-soft) !important;
+}
+
+.status-denied,
+.discount-rejected {
+  color: var(--danger) !important;
+  background: var(--danger-soft) !important;
+}
+
+.danger-btn,
+.denyBtn,
+.reject-discount-btn {
+  box-shadow: none !important;
+}
+
+.unavailable-btn {
+  border: 1px solid var(--line-subtle) !important;
+  color: var(--text-muted) !important;
+  background: var(--surface-muted) !important;
+}
+
+.unavailable-btn:hover {
+  transform: none !important;
+}
+
+.discount-note,
+.discount-state,
+.id-reminder {
+  color: var(--text-secondary) !important;
+}
+
+.receipt-link,
+.receipt-link:hover,
+.receipt-placeholder a,
+.receipt-details a {
+  color: var(--blue) !important;
+}
+
+.profile-dropdown {
+  color: var(--text-primary) !important;
+  background: var(--surface-card) !important;
+  border-color: var(--line-subtle) !important;
+  box-shadow: var(--shadow-popover) !important;
+}
+
+.dashboard-page .status-message {
+  color: var(--text-secondary) !important;
+}
+
+.dashboard-page .error-message,
+.scanner-error,
+.error-message,
+.error {
+  color: var(--danger) !important;
+}
+
+.login-page,
+.signup-page,
+.admin-login-page {
+  color: var(--text-primary) !important;
+  background: var(--surface-page) !important;
+}
+
+.login-box,
+.admin-login-page .login-box,
+.signup-box {
+  border: 1px solid var(--line-subtle) !important;
+  border-radius: 20px !important;
+  color: var(--text-primary) !important;
+  background: var(--surface-card) !important;
+  box-shadow: var(--shadow-card) !important;
+  backdrop-filter: none !important;
+}
+
+.login-box h3,
+.signup-box h3,
+.login-page .logo-login,
+.admin-login-page .logo,
+.signup-page .logo-signup,
+.login-page .tagline,
+.signup-page .tagline-signup {
+  color: var(--text-primary) !important;
+  text-shadow: none !important;
+}
+
+.signup-page nav ul li a,
+.signup-page nav ul li a:hover,
+.signup-page nav ul li a.active,
+.signup-text a {
+  color: var(--blue) !important;
+}
+
+.error-message,
+.error {
+  color: var(--danger) !important;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--line-subtle);
+  border-radius: 999px;
+  color: var(--text-primary);
+  background: var(--surface-card);
+  white-space: nowrap;
+}
+
+.theme-toggle:hover {
+  color: var(--blue-ink);
+  border-color: var(--blue-border);
+  background: var(--blue-soft);
+}
+
+.theme-toggle-icon {
+  color: var(--blue);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.theme-toggle-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+@media (max-width: 680px) {
+  .dashboard-page,
+  .owners-page,
+  .rent-page,
+  .receipts-page,
+  .vehicles-page {
+    padding: 16px !important;
+  }
+
+  .receipts-page .main-content,
+  .vehicles-page .main-content {
+    min-height: auto !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .vehicles-page .vehicles-grid {
+    margin-top: 0 !important;
+    gap: 16px !important;
+  }
+
+  .theme-toggle {
+    min-height: 38px;
+    padding: 7px 9px;
+  }
+
+  .theme-toggle-label {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

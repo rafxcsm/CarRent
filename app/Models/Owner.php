@@ -17,6 +17,7 @@ class Owner extends Model
         'contact_no',
         'license_no',
         'status',
+        'client_id',
     ];
 
    

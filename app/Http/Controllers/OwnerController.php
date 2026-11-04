@@ -12,11 +12,14 @@ class OwnerController extends Controller
     {
         $search = $request->query('search', '');
 
-        $owners = User::when($search, function($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%")
-                      ->orWhere('license', 'like', "%{$search}%")
-                      ->orWhere('contact', 'like', "%{$search}%");
+        $owners = User::where('client_id', $request->user()->client_id)
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($searchQuery) use ($search) {
+                    $searchQuery->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('license', 'like', "%{$search}%")
+                        ->orWhere('contact', 'like', "%{$search}%");
+                });
             })
             ->select('id', 'name as full_name', 'contact as contact_no', 'address', 'license as license_no', 'created_at')
             ->orderBy('id', 'desc')
@@ -29,9 +32,9 @@ class OwnerController extends Controller
     }
 
     // Delete an owner
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        $owner = User::find($id);
+        $owner = User::where('client_id', $request->user()->client_id)->find($id);
         if (!$owner) {
             return response()->json(['success' => false, 'message' => 'Owner not found'], 404);
         }

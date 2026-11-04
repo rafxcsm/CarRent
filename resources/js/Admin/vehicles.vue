@@ -46,14 +46,14 @@
       </table>
 
       <div class="action-buttons">
-        <button @click="openAddModal">Add</button>
-        <button @click="openDeleteModal">Delete</button>
-        <button @click="openUpdateModal">Update</button>
+        <button class="button-primary" @click="openAddModal">Add</button>
+        <button class="button-danger" @click="openDeleteModal">Delete</button>
+        <button class="button-secondary" @click="openUpdateModal">Update</button>
       </div>
     </section>
 
     <div v-if="showVehicleModal" class="modal" @click.self="closeVehicleModal">
-      <div class="modal-content">
+      <div class="modal-content" :class="{ 'vehicle-calendar-modal': isEditMode }">
         <h2>{{ isEditMode ? 'Update Vehicle' : 'Add New Vehicle' }}</h2>
 
         <form @submit.prevent="saveVehicle">
@@ -76,7 +76,17 @@
           <select v-model="vehicleForm.status" required>
             <option value="Available">Available</option>
             <option value="Rented">Rented</option>
+            <option value="Under Maintenance">Under Maintenance</option>
           </select>
+
+          <div v-if="isEditMode" class="maintenance-calendar-wrap">
+            <label>Availability and maintenance schedule</label>
+            <AvailabilityCalendar
+              :vehicle-id="vehicleForm.id"
+              mode="admin"
+              :vehicle-status="vehicleForm.status"
+            />
+          </div>
 
           <label>Vehicle Photo:</label>
           <input type="file" accept="image/*" @change="handleImageChange" />
@@ -85,10 +95,10 @@
           </small>
 
           <div class="modal-buttons">
-            <button type="submit" :disabled="saving">
+            <button class="button-primary" type="submit" :disabled="saving">
               {{ saving ? 'Saving...' : 'Save' }}
             </button>
-            <button type="button" @click="closeVehicleModal">Cancel</button>
+            <button class="button-secondary" type="button" @click="closeVehicleModal">Cancel</button>
           </div>
         </form>
       </div>
@@ -104,13 +114,13 @@
         <div class="modal-buttons">
           <button
             type="button"
-            class="danger-btn"
+            class="danger-btn button-danger"
             @click="deleteVehicle"
             :disabled="deleting"
           >
             {{ deleting ? 'Deleting...' : 'Delete' }}
           </button>
-          <button type="button" @click="closeDeleteModal">Cancel</button>
+          <button class="button-secondary" type="button" @click="closeDeleteModal">Cancel</button>
         </div>
       </div>
     </div>
@@ -119,7 +129,8 @@
 
 <script setup>
 import { computed, reactive, ref, onMounted } from 'vue'
-import axios from 'axios'
+import api from '@/api'
+import AvailabilityCalendar from '@/components/AvailabilityCalendar.vue'
 
 const search = ref('')
 const selectedVehicle = ref(null)
@@ -150,15 +161,21 @@ const fetchVehicles = async () => {
   error.value = ''
 
   try {
-    const response = await axios.get('/admin/vehicles')
+
+    // ✅ AUTHENTICATED REQUEST
+    const response = await api.get('/admin/vehicles')
 
     if (response.data?.success) {
       vehicles.value = response.data.vehicles || []
     } else {
       error.value = 'Failed to load vehicles.'
     }
+
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load vehicles.'
+
+    error.value =
+      err.response?.data?.message || 'Failed to load vehicles.'
+
   } finally {
     loading.value = false
   }
@@ -224,12 +241,14 @@ const openAddModal = () => {
 }
 
 const openUpdateModal = () => {
+
   if (!selectedVehicle.value) {
     alert('Select vehicle first')
     return
   }
 
   isEditMode.value = true
+
   vehicleForm.id = selectedVehicle.value.id
   vehicleForm.reg_no = selectedVehicle.value.reg_no
   vehicleForm.brand = selectedVehicle.value.brand
@@ -247,6 +266,7 @@ const closeVehicleModal = () => {
 }
 
 const openDeleteModal = () => {
+
   if (!selectedVehicle.value) {
     alert('Select a vehicle first')
     return
@@ -260,10 +280,13 @@ const closeDeleteModal = () => {
 }
 
 const saveVehicle = async () => {
+
   saving.value = true
 
   try {
+
     const formData = new FormData()
+
     formData.append('reg_no', vehicleForm.reg_no)
     formData.append('brand', vehicleForm.brand)
     formData.append('color', vehicleForm.color)
@@ -275,53 +298,99 @@ const saveVehicle = async () => {
       formData.append('image', vehicleForm.image)
     }
 
+    // ✅ UPDATE
     if (isEditMode.value) {
-      formData.append('_method', 'POST')
 
-      await axios.post(`/admin/vehicles/${vehicleForm.id}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
-    } else {
-      await axios.post('/admin/vehicles', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
+      formData.append('_method', 'PUT')
+
+      await api.post(
+        `/admin/vehicles/${vehicleForm.id}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      )
+
+    }
+
+    // ✅ ADD
+    else {
+
+      await api.post(
+        '/admin/vehicles',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      )
+
     }
 
     await fetchVehicles()
+
     closeVehicleModal()
     resetForm()
+
     selectedVehicle.value = null
+
   } catch (err) {
+
     const errors = err.response?.data?.errors
+
     if (errors) {
+
       const firstError = Object.values(errors)[0]?.[0]
+
       alert(firstError || 'Failed to save vehicle.')
+
     } else {
-      alert(err.response?.data?.message || 'Failed to save vehicle.')
+
+      alert(
+        err.response?.data?.message || 'Failed to save vehicle.'
+      )
+
     }
+
   } finally {
+
     saving.value = false
+
   }
 }
 
 const deleteVehicle = async () => {
+
   if (!selectedVehicle.value) return
 
   deleting.value = true
 
   try {
-    await axios.delete(`/admin/vehicles/${selectedVehicle.value.id}`)
+
+    // ✅ AUTHENTICATED DELETE
+    await api.delete(
+      `/admin/vehicles/${selectedVehicle.value.id}`
+    )
+
     selectedVehicle.value = null
+
     await fetchVehicles()
+
     closeDeleteModal()
+
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to delete vehicle.')
+
+    alert(
+      err.response?.data?.message || 'Failed to delete vehicle.'
+    )
+
   } finally {
+
     deleting.value = false
+
   }
 }
 </script>
@@ -457,6 +526,20 @@ tbody tr.selected {
   width: 400px;
   max-width: 90%;
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.vehicle-calendar-modal {
+  width: min(680px, 94vw);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.maintenance-calendar-wrap {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid rgba(125, 160, 195, .3);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .04);
 }
 
 .modal-content.small {

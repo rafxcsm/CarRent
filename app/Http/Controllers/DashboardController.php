@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Vehicle;
 use App\Models\Rental;
 use App\Models\User;
@@ -10,18 +9,22 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
+        $clientId = $request->user()->client_id;
+        $client = $request->user()->client;
+
         // Vehicle stats
-        $totalCars = Vehicle::count();
-        $availableCars = Vehicle::where('status', 'available')->count();
-        $rentedCars = Vehicle::where('status', 'rented')->count();
+        $totalCars = Vehicle::where('client_id', $clientId)->count();
+        $availableCars = Vehicle::where('client_id', $clientId)->whereRaw('LOWER(status) = ?', ['available'])->count();
+        $rentedCars = Vehicle::where('client_id', $clientId)->whereRaw('LOWER(status) = ?', ['rented'])->count();
 
         // Customer stats
-        $totalCustomers = User::count();
+        $totalCustomers = User::where('client_id', $clientId)->count();
 
         // Booking stats
-        $bookingCountsRaw = Rental::selectRaw('LOWER(status) as status, COUNT(*) as count')
+        $bookingCountsRaw = Rental::where('client_id', $clientId)
+            ->selectRaw('LOWER(status) as status, COUNT(*) as count')
             ->groupBy(DB::raw('LOWER(status)'))
             ->get();
 
@@ -42,6 +45,14 @@ class DashboardController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
+                'client' => [
+                    'name' => $client->name,
+                    'pickup_address' => $client->pickup_address,
+                    'pickup_phone' => $client->pickup_phone,
+                    'subscription_status' => $client->refreshSubscriptionStatus()->subscription_status,
+                    'subscription_due_at' => $client->subscription_due_at,
+                    'grace_ends_at' => $client->grace_ends_at,
+                ],
                 // Top 4 stats for boxes
                 'stats' => [
                     ['title' => 'Total Cars', 'value' => $totalCars],
