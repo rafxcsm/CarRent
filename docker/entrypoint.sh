@@ -1,8 +1,9 @@
 #!/bin/sh
 set -eu
 
-if [ -z "${APP_URL:-}" ] && [ -n "${RENDER_EXTERNAL_URL:-}" ]; then
-    export APP_URL="$RENDER_EXTERNAL_URL"
+if [ -n "${RENDER_EXTERNAL_URL:-}" ]; then
+    export APP_URL="${APP_URL:-$RENDER_EXTERNAL_URL}"
+    export ASSET_URL="${ASSET_URL:-$RENDER_EXTERNAL_URL}"
 fi
 
 php artisan config:clear
