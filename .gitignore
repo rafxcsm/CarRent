@@ -23,7 +23,11 @@
 /public/hot
 /android-user/www
 /android
+/.expo
 /.apk-build-tools
+/.docx-review-*/
+*.apk
+*.aab
 /public/storage
 /public/uploads/
 /storage/app/public/*
