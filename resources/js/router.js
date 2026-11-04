@@ -23,6 +23,12 @@ import UserReceipts from './User/receipts.vue'
 /* ================= ROUTES ================= */
 const routes = [
 
+  /* Public entry point */
+  {
+    path: '/',
+    redirect: '/user',
+  },
+
   /* PLATFORM SUPER ADMIN */
   {
     path: '/super-admin/login',
