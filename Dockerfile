@@ -16,7 +16,7 @@ RUN apt-get update \
         libxml2-dev \
         libzip-dev \
         unzip \
-    && docker-php-ext-install -j"$(nproc)" bcmath curl dom intl mbstring pdo_pgsql simplexml xml xmlreader xmlwriter zip opcache \
+    && CFLAGS="-I/usr/src/php" docker-php-ext-install -j"$(nproc)" bcmath curl dom intl mbstring pdo_pgsql simplexml xml xmlreader xmlwriter zip opcache \
     && a2enmod rewrite headers \
     && printf 'upload_max_filesize=12M\npost_max_size=14M\n' > /usr/local/etc/php/conf.d/uploads.ini \
     && rm -rf /var/lib/apt/lists/*
