@@ -25,6 +25,7 @@
 /android
 /.expo
 /.apk-build-tools
+/.gradle-build-home/
 /.docx-review-*/
 *.apk
 *.aab

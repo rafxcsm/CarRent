@@ -173,7 +173,7 @@ const loadClients = async () => {
     }
   } catch (err) {
     errorMessage.value = !err.response
-      ? 'Cannot reach the rental server. Start Laravel on the rental PC and check that Windows Firewall allows port 8000.'
+      ? 'Could not connect to Drivora. Check your internet connection and try again. The free server may take a little time to wake.'
       : err.response.status >= 500
         ? 'The server could not load rental businesses. Check that its database is running, then try again.'
         : 'Could not load rental businesses. Please try again.'
