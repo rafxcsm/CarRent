@@ -12,6 +12,7 @@
 
     <div class="topbar-account profile-wrapper" ref="profileWrapper">
       <ThemeToggle />
+      <NotificationBell audience="user" />
       <img
         :src="profileImg"
         alt="Profile"
@@ -44,6 +45,7 @@ import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/api'
 import ThemeToggle from '@/components/ThemeToggle.vue'
+import NotificationBell from '@/components/NotificationBell.vue'
 import profileImg from '@/assets/img/profile.png.png'
 import logoImg from '@/assets/img/logocar.png.png'
 

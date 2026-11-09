@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Rental;
 use App\Models\Admin;
+use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -13,6 +14,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use App\Support\VehicleAvailabilityCalendar;
 use App\Support\SupabaseStorage;
+use App\Notifications\InAppNotification;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -102,6 +104,8 @@ class RentalController extends Controller
             }
             throw $exception;
         }
+
+        $this->notifyBusinessTeamOfBooking($rental);
 
         return response()->json([
             'success' => true,
@@ -243,7 +247,7 @@ class RentalController extends Controller
     public function approve(Request $request, $id)
     {
         $clientId = $request->user()->client_id;
-        DB::transaction(function () use ($clientId, $id) {
+        $rental = DB::transaction(function () use ($clientId, $id) {
             $rental = Rental::where('client_id', $clientId)->lockForUpdate()->findOrFail($id);
             if ($rental->status !== 'pending') {
                 throw ValidationException::withMessages(['rental' => 'Only pending bookings can be approved.']);
@@ -262,8 +266,16 @@ class RentalController extends Controller
             }
 
             $rental->update(['status' => 'approved']);
-            return $rental;
+            return $rental->fresh(['user', 'vehicle']);
         });
+
+        $vehicleName = trim(($rental->vehicle?->brand ?? '').' '.($rental->vehicle?->model ?? '')) ?: 'your vehicle';
+        $this->notifyCustomerOfBookingChange(
+            $rental,
+            'booking_approved',
+            'Booking approved',
+            'Your booking for '.$vehicleName.' has been approved.',
+        );
 
         return response()->json([
             'success' => true,
@@ -330,22 +342,104 @@ class RentalController extends Controller
             return $rental->fresh(['vehicle']);
         });
 
+        if ($validated['action'] === 'cancel') {
+            $this->notifyCustomerOfBookingChange(
+                $rental,
+                'booking_denied',
+                'Booking cancelled',
+                'Your booking was cancelled because of a vehicle maintenance conflict. Please contact the rental business if you need help.',
+            );
+        } else {
+            $vehicleName = trim(($rental->vehicle?->brand ?? '').' '.($rental->vehicle?->model ?? '')) ?: 'your replacement vehicle';
+            $newDate = Carbon::parse($rental->rental_start)->format('M j, Y g:i A');
+            $this->notifyCustomerOfBookingChange(
+                $rental,
+                'booking_changed',
+                'Booking updated',
+                'Your booking has been updated to '.$vehicleName.' on '.$newDate.'.',
+            );
+        }
+
         return response()->json(['success' => true, 'message' => 'Maintenance conflict resolved.', 'rental_id' => $rental->id]);
     }
 
     /* ================= DENY RENTAL ================= */
     public function deny(Request $request, $id)
     {
-        $rental = Rental::where('client_id', $request->user()->client_id)->findOrFail($id);
+        $clientId = $request->user()->client_id;
+        $rental = DB::transaction(function () use ($clientId, $id) {
+            $rental = Rental::where('client_id', $clientId)
+                ->lockForUpdate()
+                ->with(['user', 'vehicle'])
+                ->findOrFail($id);
 
-        $rental->update([
-            'status' => 'denied'
-        ]);
+            if ($rental->status !== 'pending') {
+                throw ValidationException::withMessages(['rental' => 'Only pending booking requests can be denied.']);
+            }
+
+            $rental->update(['status' => 'denied']);
+
+            return $rental->fresh(['user', 'vehicle']);
+        });
+
+        $vehicleName = trim(($rental->vehicle?->brand ?? '').' '.($rental->vehicle?->model ?? '')) ?: 'your vehicle';
+        $this->notifyCustomerOfBookingChange(
+            $rental,
+            'booking_denied',
+            'Booking not approved',
+            'Your booking request for '.$vehicleName.' was not approved. Please contact the rental business if you need more information.',
+        );
 
         return response()->json([
             'success' => true,
             'message' => 'Rental denied'
         ]);
+    }
+
+    private function notifyBusinessTeamOfBooking(Rental $rental): void
+    {
+        try {
+            $rental->loadMissing(['user', 'vehicle']);
+            $customerName = $rental->user?->name ?? 'A customer';
+            $vehicleName = trim(($rental->vehicle?->brand ?? '').' '.($rental->vehicle?->model ?? '')) ?: 'a vehicle';
+            $start = Carbon::parse($rental->rental_start)->format('M j, Y');
+            $end = Carbon::parse($rental->rental_end ?? $rental->rental_start)->format('M j, Y');
+
+            Admin::query()
+                ->where('client_id', $rental->client_id)
+                ->whereIn('role', ['admin', 'staff'])
+                ->where('is_active', true)
+                ->get()
+                ->each(fn (Admin $admin) => $admin->notify(new InAppNotification([
+                    'type' => 'booking_request',
+                    'title' => 'New booking request',
+                    'message' => $customerName.' requested '.$vehicleName.' from '.$start.' to '.$end.'.',
+                    'url' => '/admin/rent',
+                    'rental_id' => $rental->id,
+                ])));
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+    }
+
+    private function notifyCustomerOfBookingChange(
+        Rental $rental,
+        string $type,
+        string $title,
+        string $message,
+    ): void {
+        try {
+            $customer = $rental->user ?? User::where('client_id', $rental->client_id)->find($rental->user_id);
+            $customer?->notify(new InAppNotification([
+                'type' => $type,
+                'title' => $title,
+                'message' => $message,
+                'url' => '/user/receipts',
+                'rental_id' => $rental->id,
+            ]));
+        } catch (Throwable $exception) {
+            report($exception);
+        }
     }
 
     /* ================= ADMIN QR PICKUP VERIFICATION ================= */

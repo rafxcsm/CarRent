@@ -295,6 +295,7 @@ const resolverError = ref('')
 const minimumDateTime = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)
 let qrScanner = null
 let scannerIsRunning = false
+let rentalsPollTimer = null
 
 /* ================= FETCH ================= */
 const fetchRentals = async () => {
@@ -497,9 +498,13 @@ const closeScanner = async () => {
 /* ================= LIFECYCLE ================= */
 onMounted(() => {
   fetchRentals()
+  rentalsPollTimer = window.setInterval(() => {
+    if (document.visibilityState === "visible") fetchRentals()
+  }, 15000)
 })
 
 onBeforeUnmount(() => {
+  window.clearInterval(rentalsPollTimer)
   stopQrScanner()
 })
 

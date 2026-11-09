@@ -136,7 +136,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import api from '@/api'
 import QRCode from 'qrcode'
 
@@ -148,6 +148,7 @@ const showQrModal = ref(false)
 const selectedQrReceipt = ref(null)
 const qrImageUrl = ref('')
 const qrError = ref('')
+let receiptsPollTimer = null
 
 const formatRate = (value) => {
   return Number(value || 0).toLocaleString(undefined, {
@@ -272,6 +273,13 @@ const fetchReceipts = async () => {
 
 onMounted(() => {
   fetchReceipts()
+  receiptsPollTimer = window.setInterval(() => {
+    if (document.visibilityState === 'visible') fetchReceipts()
+  }, 15000)
+})
+
+onBeforeUnmount(() => {
+  window.clearInterval(receiptsPollTimer)
 })
 </script>
 

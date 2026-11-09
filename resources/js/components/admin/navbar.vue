@@ -16,6 +16,7 @@
 
     <div class="topbar-account">
       <ThemeToggle />
+      <NotificationBell audience="admin" />
       <span class="current-page">{{ pageTitle }}</span>
       <span class="account-chip"><span class="account-dot"></span> {{ isBusinessAdmin ? 'Admin' : 'Staff' }}</span>
       <button class="admin-logout button-secondary" type="button" @click="logout">Log out</button>
@@ -28,6 +29,7 @@ import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/api'
 import ThemeToggle from '@/components/ThemeToggle.vue'
+import NotificationBell from '@/components/NotificationBell.vue'
 import logoImg from '@/assets/img/logocar.png.png'
 
 const route = useRoute()

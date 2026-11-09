@@ -15,6 +15,7 @@ use App\Http\Controllers\ClientDirectoryController;
 use App\Http\Controllers\SuperAdminClientController;
 use App\Http\Controllers\AdminStaffController;
 use App\Http\Controllers\BusinessProfileController;
+use App\Http\Controllers\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,6 +38,9 @@ Route::get('/clients', [ClientDirectoryController::class, 'index']);
 Route::middleware(['auth:sanctum', 'user', 'tenant.subscription'])->group(function () {
 
     Route::get('/user/profile', [UserController::class, 'profile']);
+    Route::get('/user/notifications', [NotificationController::class, 'index']);
+    Route::post('/user/notifications/{notification}/read', [NotificationController::class, 'markRead']);
+    Route::post('/user/notifications/read-all', [NotificationController::class, 'markAllRead']);
 
     Route::get('/user/vehicles', [UserVehicleController::class, 'index']);
     Route::get('/user/vehicles/{id}/availability', [UserVehicleController::class, 'availability']);
@@ -52,6 +56,9 @@ Route::middleware(['auth:sanctum', 'user', 'tenant.subscription'])->group(functi
 
 Route::prefix('admin')->middleware(['auth:sanctum', 'admin', 'tenant.subscription'])->group(function () {
     Route::post('/logout', [AdminAuthController::class, 'logout']);
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
     Route::get('/rentals', [RentalController::class, 'adminRentals']);
