@@ -158,7 +158,7 @@ onMounted(() => {
   loadNotifications()
   pollTimer = window.setInterval(() => {
     if (document.visibilityState === 'visible') loadNotifications()
-  }, 15000)
+  }, 1000)
   document.addEventListener('click', handleOutsideClick)
 })
 

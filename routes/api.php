@@ -23,9 +23,9 @@ use App\Http\Controllers\NotificationController;
 |--------------------------------------------------------------------------
 */
 
-Route::post('/signup', [SignupController::class, 'store']);
-Route::post('/login', [UserController::class, 'login']);
-Route::post('/admin/login', [AdminAuthController::class, 'login']);
+Route::post('/signup', [SignupController::class, 'store'])->middleware('throttle:5,1');
+Route::post('/login', [UserController::class, 'login'])->middleware('throttle:5,1');
+Route::post('/admin/login', [AdminAuthController::class, 'login'])->middleware('throttle:5,1');
 Route::post('/super-admin/login', [SuperAdminAuthController::class, 'login'])->middleware('throttle:5,1');
 Route::get('/clients', [ClientDirectoryController::class, 'index']);
 

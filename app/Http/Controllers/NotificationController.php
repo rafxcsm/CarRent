@@ -76,6 +76,10 @@ class NotificationController extends Controller
             ['sent_at' => null]
         );
 
+        if ($reminder->sent_at) {
+            return;
+        }
+
         DB::transaction(function () use ($client, $daysUntilDue, $reminder, $dueDate): void {
             $lockedReminder = SubscriptionReminder::query()
                 ->whereKey($reminder->getKey())
