@@ -291,11 +291,11 @@ class RentalController extends Controller
 
         $validated = $request->validate([
             'action' => 'required|in:reschedule,reassign,cancel',
-            'customer_acknowledged' => 'nullable|accepted',
-            'customer_notified' => 'nullable|accepted',
             'rental_start' => 'required_if:action,reschedule|nullable|date|after_or_equal:today',
             'vehicle_id' => 'required_if:action,reassign|nullable|exists:vehicles,id',
         ]);
+        // Check only the confirmation for the selected action. Ignore any
+        // stale value sent for the inactive checkbox by an older client.
         if (in_array($validated['action'], ['reschedule', 'reassign'], true) && !$request->boolean('customer_acknowledged')) {
             throw ValidationException::withMessages(['customer_acknowledged' => 'Confirm the customer agreed to this change.']);
         }
